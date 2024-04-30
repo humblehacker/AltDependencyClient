@@ -1,8 +1,18 @@
 import ReplaceableImplementation
 
-let a = 17
-let b = 25
+//@ReplaceableImplementation
+//protocol FooDependency {
+//    func foo(integer: Int) -> String
+//}
 
-let (result, code) = #stringify(a + b)
+struct FooExample {
+    let impl: Impl
 
-print("The value \(result) was produced by the code \"\(code)\"")
+    func foo(integer: Int) -> String {
+        return impl.foo(integer)
+    }
+
+    struct Impl {
+        var foo: (_ integer: Int) -> String
+    }
+}

@@ -1,3 +1,4 @@
+import MacroTesting
 import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
@@ -8,41 +9,103 @@ import XCTest
 #if canImport(ReplaceableImplementationMacros)
 import ReplaceableImplementationMacros
 
-let testMacros: [String: Macro.Type] = [
-    "stringify": StringifyMacro.self,
-]
-#endif
-
 final class ReplaceableImplementationTests: XCTestCase {
-    func testMacro() throws {
-        #if canImport(ReplaceableImplementationMacros)
+    override func invokeTest() {
+        withMacroTesting(
+//            isRecording: true,
+            macros: [ReplaceableImplementationMacro.self]
+        ) {
+            super.invokeTest()
+        }
+    }
+
+    func testReplaceableImplementationMacro() throws {
         assertMacroExpansion(
             """
-            #stringify(a + b)
+            @ReplaceableImplementation
+            protocol FooDependency {
+              func foo(integer: Int) -> String
+            }
             """,
             expandedSource: """
-            (a + b, "a + b")
+            protocol FooDependency {
+              func foo(integer: Int) -> String
+            }
+
+            struct Foo {
+              let impl: Impl
+
+              func foo(integer: Int) -> String {
+                return impl.foo(integer)
+              }
+
+              struct Impl {
+                var foo: (_ integer: Int) -> String
+              }
+            }
             """,
-            macros: testMacros
+            macros: ["ReplaceableImplementation": ReplaceableImplementationMacro.self]
         )
-        #else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-        #endif
     }
 
-    func testMacroWithStringLiteral() throws {
-        #if canImport(ReplaceableImplementationMacros)
-        assertMacroExpansion(
-            #"""
-            #stringify("Hello, \(name)")
-            """#,
-            expandedSource: #"""
-            ("Hello, \(name)", #""Hello, \(name)""#)
-            """#,
-            macros: testMacros
-        )
-        #else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-        #endif
+    func testReplaceableImplementationMacro2() throws {
+        assertMacro {
+            """
+            @ReplaceableImplementation
+            protocol FooDependency {
+              func foo(integer: Int) -> String
+            }
+            """
+        } expansion: {
+            """
+            protocol FooDependency {
+              func foo(integer: Int) -> String
+            }
+
+            struct Foo {
+              let impl: Impl
+
+              func foo(integer: Int) -> String {
+                return impl.foo(integer)
+              }
+
+              struct Impl {
+                var foo: (_ integer: Int) -> String
+              }
+            }
+            """
+        }
+    }
+
+    func testIncorrectApplicationEmitsDiagnostics() throws {
+        assertMacro {
+            """
+            @ReplaceableImplementation
+            struct Foo {}
+            """
+        } diagnostics: {
+            """
+            @ReplaceableImplementation
+            ╰─ 🛑 '@ReplaceableImplementation' can only be applied to protocols
+            struct Foo {}
+            """
+        } 
+    }
+
+    func testIncorrectProtocolSuffixEmitsDiagnostics() throws {
+        assertMacro {
+            """
+            @ReplaceableImplementation
+            protocol Foo {}
+            """
+        } diagnostics: {
+            """
+            @ReplaceableImplementation
+            protocol Foo {}
+                     ┬──
+                     ╰─ 🛑 '@ReplaceableImplementation' requires protocol name with 'Dependency' suffix
+            """
+        }
     }
 }
+#endif

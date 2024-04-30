@@ -1,33 +1,90 @@
 import SwiftCompilerPlugin
+import SwiftDiagnostics
 import SwiftSyntax
 import SwiftSyntaxBuilder
+import SwiftSyntaxMacroExpansion
 import SwiftSyntaxMacros
 
-/// Implementation of the `stringify` macro, which takes an expression
-/// of any type and produces a tuple containing the value of that expression
-/// and the source code that produced the value. For example
-///
-///     #stringify(x + y)
-///
-///  will expand to
-///
-///     (x + y, "x + y")
-public struct StringifyMacro: ExpressionMacro {
+extension MacroExpansionContext {
+    func emitDiagnostic(
+        node: some SyntaxProtocol,
+        message: @autoclosure () -> String
+    ) {
+        diagnose(
+            Diagnostic(
+                node: node,
+                message: MacroExpansionErrorMessage(message())
+            )
+        )
+    }
+}
+
+public struct ReplaceableImplementationMacro: PeerMacro {
+    static let protocolSuffix = "Dependency"
+
     public static func expansion(
-        of node: some FreestandingMacroExpansionSyntax,
+        of node: AttributeSyntax,
+        providingPeersOf declaration: some DeclSyntaxProtocol,
         in context: some MacroExpansionContext
-    ) -> ExprSyntax {
-        guard let argument = node.argumentList.first?.expression else {
-            fatalError("compiler bug: the macro does not have any arguments")
+    ) throws -> [DeclSyntax] {
+        guard let protoDecl = declaration.as(ProtocolDeclSyntax.self) else {
+            context.emitDiagnostic(
+                node: declaration,
+                message: "'@ReplaceableImplementation' can only be applied to protocols"
+            )
+//            context.diagnose(
+//                Diagnostic(
+//                    node: declaration,
+//                    message: MacroExpansionErrorMessage(
+//                        "'@ReplaceableImplementation' can only be applied to protocols"
+//                    )
+//                )
+//            )
+
+            return []
         }
 
-        return "(\(argument), \(literal: argument.description))"
+        guard protoDecl.name.text.hasSuffix("Dependency") else {
+            context.diagnose(
+                Diagnostic(
+                    node: protoDecl.name,
+                    message: MacroExpansionErrorMessage(
+                        "'@ReplaceableImplementation' requires protocol name with '\(protocolSuffix)' suffix"
+                    )
+                )
+            )
+
+            return []
+        }
+
+
+        let structName = String(protoDecl.name.text.dropLast(protocolSuffix.count))
+
+        let structDecl = StructDeclSyntax(
+            name: TokenSyntax(stringLiteral: structName),
+            memberBlock: MemberBlockSyntax(
+               """
+               {
+                 let impl: Impl
+
+                 func foo(integer: Int) -> String {
+                   return impl.foo(integer)
+                 }
+
+                 struct Impl {
+                   var foo: (_ integer: Int) -> String
+                 }
+               }
+               """
+            )
+        )
+        return [DeclSyntax(structDecl)]
     }
 }
 
 @main
 struct ReplaceableImplementationPlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
-        StringifyMacro.self,
+        ReplaceableImplementationMacro.self
     ]
 }
