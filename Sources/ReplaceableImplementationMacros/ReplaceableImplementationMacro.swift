@@ -35,10 +35,6 @@ public struct ReplaceableImplementationMacro: MemberMacro {
             .members
             .compactMap { $0.decl.as(FunctionDeclSyntax.self) }
 
-        let wrapperFunctionDecls = interfaceFunctionDecls
-            .map(wrapperFunctionDecl(from:))
-            .map(DeclSyntax.init)
-
         let implStructMemberDecls = interfaceFunctionDecls
             .map { functionDecl in
                 let functionName = functionDecl.name.text
@@ -75,11 +71,17 @@ public struct ReplaceableImplementationMacro: MemberMacro {
 
         let result = [
             [DeclSyntax("let impl: Impl")],
-            wrapperFunctionDecls,
+            wrapperFunctionDecls(from: interfaceFunctionDecls),
             [DeclSyntax(implStructDecl)]
         ].reduce([], +)
 
         return result
+    }
+
+    static func wrapperFunctionDecls(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> [DeclSyntax] {
+        interfaceFunctionDecls
+            .map(wrapperFunctionDecl(from:))
+            .map(DeclSyntax.init)
     }
 
     static func wrapperFunctionDecl(from functionDecl: FunctionDeclSyntax) -> FunctionDeclSyntax {
