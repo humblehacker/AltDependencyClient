@@ -23,25 +23,41 @@ final class ReplaceableImplementationTests: XCTestCase {
         assertMacroExpansion(
             """
             @ReplaceableImplementation
-            protocol FooDependency {
-              func foo(integer: Int) -> String
+            struct Foo {
+              protocol Interface {
+                func foo(integer: Int) -> String
+                func bar(from string: String) -> Int
+                func baz()
+              }
             }
             """,
             expandedSource: """
-            protocol FooDependency {
-              func foo(integer: Int) -> String
-            }
-
             struct Foo {
-              let impl: Impl
-
-              func foo(integer: Int) -> String {
-                return impl.foo(integer)
+              protocol Interface {
+                func foo(integer: Int) -> String
+                func bar(from string: String) -> Int
+                func baz()
               }
 
-              struct Impl {
-                var foo: (_ integer: Int) -> String
-              }
+                let impl: Impl
+
+                func foo(integer: Int) -> String {
+                    return impl.foo(integer)
+                }
+
+                func bar(from string: String) -> Int {
+                    return impl.bar(string)
+                }
+
+                func baz() {
+                    return impl.baz()
+                }
+
+                struct Impl {
+                  var foo: (_ integer: Int) -> String
+                  var bar: (_ string: String) -> Int
+                  var baz: () -> Void
+                }
             }
             """,
             macros: ["ReplaceableImplementation": ReplaceableImplementationMacro.self]
@@ -52,25 +68,41 @@ final class ReplaceableImplementationTests: XCTestCase {
         assertMacro {
             """
             @ReplaceableImplementation
-            protocol FooDependency {
-              func foo(integer: Int) -> String
+            struct Foo {
+              protocol Interface {
+                func foo(integer: Int) -> String
+                func bar(from string: String) -> Int
+                func baz()
+              }
             }
             """
         } expansion: {
             """
-            protocol FooDependency {
-              func foo(integer: Int) -> String
-            }
-
             struct Foo {
+              protocol Interface {
+                func foo(integer: Int) -> String
+                func bar(from string: String) -> Int
+                func baz()
+              }
+
               let impl: Impl
 
               func foo(integer: Int) -> String {
                 return impl.foo(integer)
               }
 
+              func bar(from string: String) -> Int {
+                return impl.bar(string)
+              }
+
+              func baz() {
+                return impl.baz()
+              }
+
               struct Impl {
                 var foo: (_ integer: Int) -> String
+                var bar: (_ string: String) -> Int
+                var baz: () -> Void
               }
             }
             """
@@ -81,29 +113,28 @@ final class ReplaceableImplementationTests: XCTestCase {
         assertMacro {
             """
             @ReplaceableImplementation
-            struct Foo {}
+            class Foo {}
             """
         } diagnostics: {
             """
             @ReplaceableImplementation
-            ╰─ 🛑 '@ReplaceableImplementation' can only be applied to protocols
-            struct Foo {}
+            ╰─ 🛑 '@ReplaceableImplementation' can only be applied to structs
+            class Foo {}
             """
-        } 
+        }
     }
 
-    func testIncorrectProtocolSuffixEmitsDiagnostics() throws {
+    func testMissingImplProtocolEmitsDiagnostics() throws {
         assertMacro {
             """
             @ReplaceableImplementation
-            protocol Foo {}
+            struct Foo {}
             """
         } diagnostics: {
             """
             @ReplaceableImplementation
-            protocol Foo {}
-                     ┬──
-                     ╰─ 🛑 '@ReplaceableImplementation' requires protocol name with 'Dependency' suffix
+            ╰─ 🛑 '@ReplaceableImplementation' requires a nested protocol named 'Interface'
+            struct Foo {}
             """
         }
     }
