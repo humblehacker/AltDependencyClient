@@ -60,7 +60,21 @@ public struct ReplaceableImplementationMacro: MemberMacro {
                                 FunctionParameterSyntax(
                                     leadingTrivia: .newline,
                                     firstName: .identifier(functionDecl.name.text),
-                                    type: TypeSyntax(closureFunctionType(from: functionDecl)),
+                                    type: TypeSyntax(
+                                        AttributedTypeSyntax(
+                                            attributes: AttributeListSyntax(
+                                                [
+                                                    .attribute(
+                                                        AttributeSyntax(
+                                                            attributeName: IdentifierTypeSyntax(name: .keyword(.escaping)),
+                                                            trailingTrivia: .space
+                                                        )
+                                                    )
+                                                ]
+                                            ),
+                                            baseType: closureFunctionType(from: functionDecl)
+                                        )
+                                    ),
                                     trailingComma: index < lastIndex ? .commaToken() : nil
                                 )
                             }

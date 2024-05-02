@@ -44,9 +44,9 @@ final class ReplaceableImplementationTests: XCTestCase {
               let impl: Impl
 
               init(
-                foo: (_ integer: Int) -> String,
-                bar: (_ string: String) -> Int,
-                baz: () async throws -> Void
+                foo: @escaping (_ integer: Int) -> String,
+                bar: @escaping (_ string: String) -> Int,
+                baz: @escaping () async throws -> Void
               ) {
                 impl = Impl(
                   foo: foo,
@@ -94,9 +94,9 @@ final class ReplaceableImplementationTests: XCTestCase {
               let impl: Impl
 
               init(
-                foo: (_ integer: Int) -> String,
-                bar: (_ string: String) -> Int,
-                baz: () async throws -> Void
+                foo: @escaping (_ integer: Int) -> String,
+                bar: @escaping (_ string: String) -> Int,
+                baz: @escaping () async throws -> Void
               ) {
                 impl = Impl(
                   foo: foo,
