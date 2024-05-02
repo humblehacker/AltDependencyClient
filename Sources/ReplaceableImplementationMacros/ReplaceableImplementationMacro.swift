@@ -7,6 +7,8 @@ import SwiftSyntaxMacros
 
 public struct ReplaceableImplementationMacro: MemberMacro {
     static let interfaceName = "Interface"
+    static let implStructName = TokenSyntax.identifier("Impl")
+    static let implMemberName = TokenSyntax.identifier("impl")
 
     public static func expansion(
         of node: AttributeSyntax,
@@ -32,7 +34,7 @@ public struct ReplaceableImplementationMacro: MemberMacro {
 
         let interfaceFunctionDecls = interfaceFunctionDecls(from: interfaceProtocolDecl)
 
-        let result = [DeclSyntax("let impl: Impl")]
+        let result = [DeclSyntax("let \(raw: Self.implMemberName): \(raw: Self.implStructName)")]
                    + [DeclSyntax(initDecl(from: interfaceFunctionDecls))]
                    + wrapperFunctionDecls(from: interfaceFunctionDecls).map(DeclSyntax.init)
                    + [DeclSyntax(implStructDecl(from: interfaceFunctionDecls))]
@@ -88,10 +90,10 @@ public struct ReplaceableImplementationMacro: MemberMacro {
                         item: .expr(
                             ExprSyntax(
                                 InfixOperatorExprSyntax(
-                                    leftOperand: DeclReferenceExprSyntax(baseName: .identifier("impl")),
+                                    leftOperand: DeclReferenceExprSyntax(baseName: Self.implMemberName),
                                     operator: AssignmentExprSyntax(),
                                     rightOperand: FunctionCallExprSyntax(
-                                        calledExpression: DeclReferenceExprSyntax(baseName: .identifier("Impl")),
+                                        calledExpression: DeclReferenceExprSyntax(baseName: Self.implStructName),
                                         leftParen: .leftParenToken(),
                                         rightParen: .rightParenToken(leadingTrivia: .newline),
                                         argumentsBuilder: {
@@ -122,7 +124,7 @@ public struct ReplaceableImplementationMacro: MemberMacro {
 
     static func implStructDecl(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> StructDeclSyntax {
         StructDeclSyntax(
-            name: TokenSyntax(stringLiteral: "Impl"),
+            name: Self.implStructName,
             memberBlock: MemberBlockSyntax(
                 members: implStructMembers(from: interfaceFunctionDecls)
             )
@@ -200,7 +202,7 @@ public struct ReplaceableImplementationMacro: MemberMacro {
         return CodeBlockSyntax(
             statements: CodeBlockItemListSyntax(
                 stringLiteral: """
-                return impl.\(functionName)(\(parameterNames.joined(separator: ", ")))
+                return \(Self.implMemberName).\(functionName)(\(parameterNames.joined(separator: ", ")))
                 """
             )
         )
