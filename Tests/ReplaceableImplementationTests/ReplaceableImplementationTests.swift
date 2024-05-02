@@ -41,6 +41,18 @@ final class ReplaceableImplementationTests: XCTestCase {
 
                 let impl: Impl
 
+                init(
+                    foo: (_ integer: Int) -> String,
+                    bar: (_ string: String) -> Int,
+                    baz: () -> Void
+                ) {
+                    impl = Impl(
+                        foo: foo,
+                        bar: bar,
+                        baz: baz
+                    )
+                }
+
                 func foo(integer: Int) -> String {
                     return impl.foo(integer)
                 }
@@ -86,6 +98,18 @@ final class ReplaceableImplementationTests: XCTestCase {
               }
 
               let impl: Impl
+
+              init(
+                foo: (_ integer: Int) -> String,
+                bar: (_ string: String) -> Int,
+                baz: () -> Void
+              ) {
+                impl = Impl(
+                  foo: foo,
+                  bar: bar,
+                  baz: baz
+                )
+              }
 
               func foo(integer: Int) -> String {
                 return impl.foo(integer)

@@ -33,6 +33,7 @@ public struct ReplaceableImplementationMacro: MemberMacro {
         let interfaceFunctionDecls = interfaceFunctionDecls(from: interfaceProtocolDecl)
 
         let result = [DeclSyntax("let impl: Impl")]
+        + [DeclSyntax(initDecl(from: interfaceFunctionDecls))]
         + wrapperFunctionDecls(from: interfaceFunctionDecls).map(DeclSyntax.init)
         + [DeclSyntax(implStructDecl(from: interfaceFunctionDecls))]
 
@@ -63,6 +64,61 @@ public struct ReplaceableImplementationMacro: MemberMacro {
         )
     }
 
+    static func initDecl(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> InitializerDeclSyntax {
+        let lastIndex = interfaceFunctionDecls.count - 1
+        return InitializerDeclSyntax(
+            signature: FunctionSignatureSyntax(
+                parameterClause: FunctionParameterClauseSyntax(
+                    parameters: FunctionParameterListSyntax(
+                        interfaceFunctionDecls.enumerated()
+                            .map { (index, functionDecl) in
+                                FunctionParameterSyntax(
+                                    leadingTrivia: .newline,
+                                    firstName: .identifier(functionDecl.name.text),
+                                    type: TypeSyntax(closureFunctionType(from: functionDecl)),
+                                    trailingComma: index < lastIndex ? .commaToken() : nil
+                                )
+                            }
+                    ),
+                    rightParen: .rightParenToken(leadingTrivia: .newline)
+                )
+            ),
+            body: CodeBlockSyntax(
+                statements: CodeBlockItemListSyntax( [
+                    CodeBlockItemSyntax(
+                        item: .expr(
+                            ExprSyntax(
+                                InfixOperatorExprSyntax(
+                                    leftOperand: DeclReferenceExprSyntax(baseName: .identifier("impl")),
+                                    operator: AssignmentExprSyntax(),
+                                    rightOperand: FunctionCallExprSyntax(
+                                        calledExpression: DeclReferenceExprSyntax(baseName: .identifier("Impl")),
+                                        leftParen: .leftParenToken(),
+                                        rightParen: .rightParenToken(leadingTrivia: .newline),
+                                        argumentsBuilder: {
+                                            LabeledExprListSyntax(
+                                                interfaceFunctionDecls
+                                                    .map { functionDecl in
+                                                        let functionName = functionDecl.name.text
+                                                        return LabeledExprSyntax(
+                                                            leadingTrivia: .newline,
+                                                            label: .identifier(functionName),
+                                                            colon: .colonToken(),
+                                                            expression: DeclReferenceExprSyntax(baseName: .identifier(functionName))
+                                                        )
+                                                    }
+                                            )
+                                        }
+                                    )
+                                )
+                            )
+                        )
+                    )
+                ] )
+            )
+        )
+    }
+
     // Generates block of closure vars corresponding to functions defined in `protocol Interface`
     // This forms the body of `struct Impl`.
     static func implStructVariableDecls(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> [VariableDeclSyntax] {
@@ -73,18 +129,16 @@ public struct ReplaceableImplementationMacro: MemberMacro {
                     modifiers: functionDecl.modifiers,
                     .var,
                     name: PatternSyntax(stringLiteral: functionDecl.name.text),
-                    type: closureVariableType(from: functionDecl),
+                    type: TypeAnnotationSyntax(type: closureFunctionType(from: functionDecl)),
                     initializer: nil
                 )
             }
     }
 
-    static func closureVariableType(from functionDecl: FunctionDeclSyntax) -> TypeAnnotationSyntax {
-        TypeAnnotationSyntax(
-            type: FunctionTypeSyntax(
-                parameters: closureParameters(from: functionDecl.signature.parameterClause.parameters),
-                returnClause: functionDecl.signature.returnClause ?? .void
-            )
+    static func closureFunctionType(from functionDecl: FunctionDeclSyntax) -> FunctionTypeSyntax {
+        FunctionTypeSyntax(
+            parameters: closureParameters(from: functionDecl.signature.parameterClause.parameters),
+            returnClause: functionDecl.signature.returnClause ?? .void
         )
     }
 
