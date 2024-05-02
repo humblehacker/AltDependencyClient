@@ -51,11 +51,15 @@ public struct ReplaceableImplementationMacro: MemberMacro {
         StructDeclSyntax(
             name: TokenSyntax(stringLiteral: "Impl"),
             memberBlock: MemberBlockSyntax(
-                members: MemberBlockItemListSyntax(
-                    implStructVariableDecls(from: interfaceFunctionDecls)
-                        .map { MemberBlockItemSyntax(decl: $0) }
-                )
+                members: implStructMembers(from: interfaceFunctionDecls)
             )
+        )
+    }
+
+    static func implStructMembers(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> MemberBlockItemListSyntax {
+        MemberBlockItemListSyntax(
+            implStructVariableDecls(from: interfaceFunctionDecls)
+                .map { MemberBlockItemSyntax(decl: $0) }
         )
     }
 
