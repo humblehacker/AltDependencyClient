@@ -46,16 +46,22 @@ public struct ReplaceableImplementationMacro: MemberMacro {
             .compactMap { $0.decl.as(FunctionDeclSyntax.self) }
     }
 
+    // Generates `struct Impl`
     static func implStructDecl(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> StructDeclSyntax {
         StructDeclSyntax(
             name: TokenSyntax(stringLiteral: "Impl"),
             memberBlock: MemberBlockSyntax(
-                members: MemberBlockItemListSyntax(implStructMemberDecls(from: interfaceFunctionDecls))
+                members: MemberBlockItemListSyntax(
+                    implStructVariableDecls(from: interfaceFunctionDecls)
+                        .map { MemberBlockItemSyntax(decl: $0) }
+                )
             )
         )
     }
 
-    static func implStructMemberDecls(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> [MemberBlockItemSyntax] {
+    // Generates block of closure vars corresponding to functions defined in `protocol Interface`
+    // This forms the body of `struct Impl`.
+    static func implStructVariableDecls(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> [VariableDeclSyntax] {
         interfaceFunctionDecls
             .map { functionDecl in
                 let functionName = functionDecl.name.text
@@ -76,11 +82,7 @@ public struct ReplaceableImplementationMacro: MemberMacro {
                       var \(functionName): (\(parameterList)) -> \(resultType)
                     """
 
-                let variableDecl = DeclSyntax(stringLiteral: declString).as(VariableDeclSyntax.self)!
-
-                let result = MemberBlockItemSyntax(decl: variableDecl)
-
-                return result
+                return DeclSyntax(stringLiteral: declString).as(VariableDeclSyntax.self)!
             }
     }
 
