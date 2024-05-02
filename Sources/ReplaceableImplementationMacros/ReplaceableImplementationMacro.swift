@@ -138,7 +138,16 @@ public struct ReplaceableImplementationMacro: MemberMacro {
     static func closureFunctionType(from functionDecl: FunctionDeclSyntax) -> FunctionTypeSyntax {
         FunctionTypeSyntax(
             parameters: closureParameters(from: functionDecl.signature.parameterClause.parameters),
+            effectSpecifiers: typeEffectSpecifiers(from: functionDecl.signature.effectSpecifiers),
             returnClause: functionDecl.signature.returnClause ?? .void
+        )
+    }
+
+    static func typeEffectSpecifiers(from functionEffectSpecifiers: FunctionEffectSpecifiersSyntax?) -> TypeEffectSpecifiersSyntax? {
+        guard let functionEffectSpecifiers else { return nil }
+        return TypeEffectSpecifiersSyntax(
+            asyncSpecifier: functionEffectSpecifiers.asyncSpecifier,
+            throwsSpecifier: functionEffectSpecifiers.throwsSpecifier
         )
     }
 

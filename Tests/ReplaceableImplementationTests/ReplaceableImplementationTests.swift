@@ -19,24 +19,26 @@ final class ReplaceableImplementationTests: XCTestCase {
         }
     }
 
+    static let mainMacroInput =
+        """
+        @ReplaceableImplementation
+        struct Foo {
+          protocol Interface {
+            func foo(integer: Int) -> String
+            func bar(from string: String) -> Int
+            func baz() async throws
+          }
+        }
+        """
+
     func testReplaceableImplementationMacro() throws {
-        assertMacroExpansion(
-            """
-            @ReplaceableImplementation
-            struct Foo {
-              protocol Interface {
-                func foo(integer: Int) -> String
-                func bar(from string: String) -> Int
-                func baz()
-              }
-            }
-            """,
+        assertMacroExpansion(Self.mainMacroInput,
             expandedSource: """
             struct Foo {
               protocol Interface {
                 func foo(integer: Int) -> String
                 func bar(from string: String) -> Int
-                func baz()
+                func baz() async throws
               }
 
                 let impl: Impl
@@ -44,7 +46,7 @@ final class ReplaceableImplementationTests: XCTestCase {
                 init(
                     foo: (_ integer: Int) -> String,
                     bar: (_ string: String) -> Int,
-                    baz: () -> Void
+                    baz: () async throws -> Void
                 ) {
                     impl = Impl(
                         foo: foo,
@@ -61,14 +63,14 @@ final class ReplaceableImplementationTests: XCTestCase {
                     return impl.bar(string)
                 }
 
-                func baz() {
+                func baz() async throws {
                     return impl.baz()
                 }
 
                 struct Impl {
                     var foo: (_ integer: Int) -> String
                     var bar: (_ string: String) -> Int
-                    var baz: () -> Void
+                    var baz: () async throws -> Void
                 }
             }
             """,
@@ -78,23 +80,14 @@ final class ReplaceableImplementationTests: XCTestCase {
 
     func testReplaceableImplementationMacro2() throws {
         assertMacro {
-            """
-            @ReplaceableImplementation
-            struct Foo {
-              protocol Interface {
-                func foo(integer: Int) -> String
-                func bar(from string: String) -> Int
-                func baz()
-              }
-            }
-            """
+            Self.mainMacroInput
         } expansion: {
             """
             struct Foo {
               protocol Interface {
                 func foo(integer: Int) -> String
                 func bar(from string: String) -> Int
-                func baz()
+                func baz() async throws
               }
 
               let impl: Impl
@@ -102,7 +95,7 @@ final class ReplaceableImplementationTests: XCTestCase {
               init(
                 foo: (_ integer: Int) -> String,
                 bar: (_ string: String) -> Int,
-                baz: () -> Void
+                baz: () async throws -> Void
               ) {
                 impl = Impl(
                   foo: foo,
@@ -119,14 +112,14 @@ final class ReplaceableImplementationTests: XCTestCase {
                 return impl.bar(string)
               }
 
-              func baz() {
+              func baz() async throws {
                 return impl.baz()
               }
 
               struct Impl {
                 var foo: (_ integer: Int) -> String
                 var bar: (_ string: String) -> Int
-                var baz: () -> Void
+                var baz: () async throws -> Void
               }
             }
             """
