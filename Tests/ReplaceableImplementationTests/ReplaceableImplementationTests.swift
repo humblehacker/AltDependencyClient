@@ -54,9 +54,9 @@ final class ReplaceableImplementationTests: XCTestCase {
                 }
 
                 struct Impl {
-                  var foo: (_ integer: Int) -> String
-                  var bar: (_ string: String) -> Int
-                  var baz: () -> Void
+                    var foo: (_ integer: Int) -> String
+                    var bar: (_ string: String) -> Int
+                    var baz: () -> Void
                 }
             }
             """,

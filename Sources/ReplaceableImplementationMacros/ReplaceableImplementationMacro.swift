@@ -64,26 +64,37 @@ public struct ReplaceableImplementationMacro: MemberMacro {
     static func implStructVariableDecls(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> [VariableDeclSyntax] {
         interfaceFunctionDecls
             .map { functionDecl in
-                let functionName = functionDecl.name.text
-                let resultType = functionDecl.signature.returnClause?.type.description ?? "Void"
-                let parameterList = functionDecl.signature.parameterClause.parameters
-                    .map { parameter in
-                        (
-                            name: (parameter.secondName ?? parameter.firstName).text,
-                            type: parameter.type.description
-                        )
-                    }
-                    .map { paramTuple in
-                        "_ \(paramTuple.name): \(paramTuple.type)"
-                    }
-                    .joined(separator: ", ")
-
-                let declString = """
-                      var \(functionName): (\(parameterList)) -> \(resultType)
-                    """
-
-                return DeclSyntax(stringLiteral: declString).as(VariableDeclSyntax.self)!
+                VariableDeclSyntax.init(
+                    attributes: functionDecl.attributes,
+                    modifiers: functionDecl.modifiers,
+                    .var,
+                    name: PatternSyntax(stringLiteral: functionDecl.name.text),
+                    type: closureVariableType(from: functionDecl),
+                    initializer: nil
+                )
             }
+    }
+
+    static func closureVariableType(from functionDecl: FunctionDeclSyntax) -> TypeAnnotationSyntax {
+        TypeAnnotationSyntax(
+            type: FunctionTypeSyntax(
+                parameters: closureParameters(from: functionDecl.signature.parameterClause.parameters),
+                returnClause: functionDecl.signature.returnClause ?? .void
+            )
+        )
+    }
+
+    static func closureParameters(from functionParameterList: FunctionParameterListSyntax) -> TupleTypeElementListSyntax {
+        TupleTypeElementListSyntax(functionParameterList.map(tupleTypeElement(from:)))
+    }
+
+    static func tupleTypeElement(from functionParameter: FunctionParameterSyntax) -> TupleTypeElementSyntax {
+        TupleTypeElementSyntax(
+            firstName: .wildcardToken(),
+            secondName: functionParameter.secondName ?? functionParameter.firstName,
+            colon: .colonToken(),
+            type: functionParameter.type
+        )
     }
 
     static func wrapperFunctionDecls(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> [FunctionDeclSyntax] {
@@ -108,6 +119,14 @@ public struct ReplaceableImplementationMacro: MemberMacro {
             )
         )
     }
+}
+
+extension TypeSyntaxProtocol where Self == TypeSyntax {
+    static var void: TypeSyntax { TypeSyntax(stringLiteral: "Void") }
+}
+
+extension ReturnClauseSyntax {
+    static var void: Self { ReturnClauseSyntax(type: .void) }
 }
 
 extension MacroExpansionContext {
