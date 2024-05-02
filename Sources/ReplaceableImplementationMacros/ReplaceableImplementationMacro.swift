@@ -30,12 +30,33 @@ public struct ReplaceableImplementationMacro: MemberMacro {
             return []
         }
 
-        let interfaceFunctionDecls = interfaceProtocolDecl
+        let interfaceFunctionDecls = interfaceFunctionDecls(from: interfaceProtocolDecl)
+
+        let result = [DeclSyntax("let impl: Impl")]
+        + wrapperFunctionDecls(from: interfaceFunctionDecls).map(DeclSyntax.init)
+        + [DeclSyntax(implStructDecl(from: interfaceFunctionDecls))]
+
+        return result
+    }
+
+    static func interfaceFunctionDecls(from interfaceProtocolDecl: ProtocolDeclSyntax) -> [FunctionDeclSyntax] {
+        interfaceProtocolDecl
             .memberBlock
             .members
             .compactMap { $0.decl.as(FunctionDeclSyntax.self) }
+    }
 
-        let implStructMemberDecls = interfaceFunctionDecls
+    static func implStructDecl(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> StructDeclSyntax {
+        StructDeclSyntax(
+            name: TokenSyntax(stringLiteral: "Impl"),
+            memberBlock: MemberBlockSyntax(
+                members: MemberBlockItemListSyntax(implStructMemberDecls(from: interfaceFunctionDecls))
+            )
+        )
+    }
+
+    static func implStructMemberDecls(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> [MemberBlockItemSyntax] {
+        interfaceFunctionDecls
             .map { functionDecl in
                 let functionName = functionDecl.name.text
                 let resultType = functionDecl.signature.returnClause?.type.description ?? "Void"
@@ -61,27 +82,11 @@ public struct ReplaceableImplementationMacro: MemberMacro {
 
                 return result
             }
-
-        let implStructDecl = StructDeclSyntax(
-            name: TokenSyntax(stringLiteral: "Impl"),
-            memberBlock: MemberBlockSyntax(
-                members: MemberBlockItemListSyntax(implStructMemberDecls)
-            )
-        )
-
-        let result = [
-            [DeclSyntax("let impl: Impl")],
-            wrapperFunctionDecls(from: interfaceFunctionDecls),
-            [DeclSyntax(implStructDecl)]
-        ].reduce([], +)
-
-        return result
     }
 
-    static func wrapperFunctionDecls(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> [DeclSyntax] {
+    static func wrapperFunctionDecls(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> [FunctionDeclSyntax] {
         interfaceFunctionDecls
             .map(wrapperFunctionDecl(from:))
-            .map(DeclSyntax.init)
     }
 
     static func wrapperFunctionDecl(from functionDecl: FunctionDeclSyntax) -> FunctionDeclSyntax {
