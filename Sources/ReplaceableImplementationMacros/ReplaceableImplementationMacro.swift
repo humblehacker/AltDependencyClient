@@ -33,9 +33,9 @@ public struct ReplaceableImplementationMacro: MemberMacro {
         let interfaceFunctionDecls = interfaceFunctionDecls(from: interfaceProtocolDecl)
 
         let result = [DeclSyntax("let impl: Impl")]
-        + [DeclSyntax(initDecl(from: interfaceFunctionDecls))]
-        + wrapperFunctionDecls(from: interfaceFunctionDecls).map(DeclSyntax.init)
-        + [DeclSyntax(implStructDecl(from: interfaceFunctionDecls))]
+                   + [DeclSyntax(initDecl(from: interfaceFunctionDecls))]
+                   + wrapperFunctionDecls(from: interfaceFunctionDecls).map(DeclSyntax.init)
+                   + [DeclSyntax(implStructDecl(from: interfaceFunctionDecls))]
 
         return result
     }
@@ -47,22 +47,7 @@ public struct ReplaceableImplementationMacro: MemberMacro {
             .compactMap { $0.decl.as(FunctionDeclSyntax.self) }
     }
 
-    // Generates `struct Impl`
-    static func implStructDecl(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> StructDeclSyntax {
-        StructDeclSyntax(
-            name: TokenSyntax(stringLiteral: "Impl"),
-            memberBlock: MemberBlockSyntax(
-                members: implStructMembers(from: interfaceFunctionDecls)
-            )
-        )
-    }
-
-    static func implStructMembers(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> MemberBlockItemListSyntax {
-        MemberBlockItemListSyntax(
-            implStructVariableDecls(from: interfaceFunctionDecls)
-                .map { MemberBlockItemSyntax(decl: $0) }
-        )
-    }
+    // MARK: - initializer generation
 
     static func initDecl(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> InitializerDeclSyntax {
         let lastIndex = interfaceFunctionDecls.count - 1
@@ -119,6 +104,24 @@ public struct ReplaceableImplementationMacro: MemberMacro {
         )
     }
 
+    // MARK: - `struct Impl` generation
+
+    static func implStructDecl(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> StructDeclSyntax {
+        StructDeclSyntax(
+            name: TokenSyntax(stringLiteral: "Impl"),
+            memberBlock: MemberBlockSyntax(
+                members: implStructMembers(from: interfaceFunctionDecls)
+            )
+        )
+    }
+
+    static func implStructMembers(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> MemberBlockItemListSyntax {
+        MemberBlockItemListSyntax(
+            implStructVariableDecls(from: interfaceFunctionDecls)
+                .map { MemberBlockItemSyntax(decl: $0) }
+        )
+    }
+
     // Generates block of closure vars corresponding to functions defined in `protocol Interface`
     // This forms the body of `struct Impl`.
     static func implStructVariableDecls(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> [VariableDeclSyntax] {
@@ -164,6 +167,8 @@ public struct ReplaceableImplementationMacro: MemberMacro {
         )
     }
 
+    // MARK: - Wrapper function generation
+
     static func wrapperFunctionDecls(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> [FunctionDeclSyntax] {
         interfaceFunctionDecls
             .map(wrapperFunctionDecl(from:))
@@ -187,6 +192,8 @@ public struct ReplaceableImplementationMacro: MemberMacro {
         )
     }
 }
+
+// MARK: - Extensions
 
 extension TypeSyntaxProtocol where Self == TypeSyntax {
     static var void: TypeSyntax { TypeSyntax(stringLiteral: "Void") }
