@@ -41,40 +41,41 @@ final class ReplaceableImplementationTests: XCTestCase {
                 func baz() async throws
               }
 
-                let impl: Impl
+              let impl: Impl
 
-                init(
-                    foo: (_ integer: Int) -> String,
-                    bar: (_ string: String) -> Int,
-                    baz: () async throws -> Void
-                ) {
-                    impl = Impl(
-                        foo: foo,
-                        bar: bar,
-                        baz: baz
-                    )
-                }
+              init(
+                foo: (_ integer: Int) -> String,
+                bar: (_ string: String) -> Int,
+                baz: () async throws -> Void
+              ) {
+                impl = Impl(
+                  foo: foo,
+                  bar: bar,
+                  baz: baz
+                )
+              }
 
-                func foo(integer: Int) -> String {
-                    return impl.foo(integer)
-                }
+              func foo(integer: Int) -> String {
+                return impl.foo(integer)
+              }
 
-                func bar(from string: String) -> Int {
-                    return impl.bar(string)
-                }
+              func bar(from string: String) -> Int {
+                return impl.bar(string)
+              }
 
-                func baz() async throws {
-                    return impl.baz()
-                }
+              func baz() async throws {
+                return impl.baz()
+              }
 
-                struct Impl {
-                    var foo: (_ integer: Int) -> String
-                    var bar: (_ string: String) -> Int
-                    var baz: () async throws -> Void
-                }
+              struct Impl {
+                var foo: (_ integer: Int) -> String
+                var bar: (_ string: String) -> Int
+                var baz: () async throws -> Void
+              }
             }
             """,
-            macros: ["ReplaceableImplementation": ReplaceableImplementationMacro.self]
+            macros: ["ReplaceableImplementation": ReplaceableImplementationMacro.self],
+            indentationWidth: .spaces(2)
         )
     }
 
