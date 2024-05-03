@@ -102,7 +102,7 @@ public struct AltDependencyClientMacro: MemberMacro {
                                             for functionDecl in interfaceFunctionDecls {
                                                 LabeledExprSyntax(
                                                     leadingTrivia: .newline,
-                                                    label: functionDecl.name,
+                                                    label: functionDecl.name.withoutBackticks,
                                                     colon: .colonToken(),
                                                     expression: DeclReferenceExprSyntax(baseName: functionDecl.name)
                                                 )

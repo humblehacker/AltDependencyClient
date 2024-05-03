@@ -1,4 +1,5 @@
 import SwiftSyntax
+import Foundation
 
 extension TypeSyntaxProtocol where Self == TypeSyntax {
     static var void: TypeSyntax { TypeSyntax(stringLiteral: "Void") }
@@ -42,4 +43,12 @@ extension AttributeSyntax {
     }
 }
 
+extension TokenSyntax {
+    var withoutBackticks: Self {
+        guard case TokenKind.identifier(let identifier) = tokenKind else { return self }
+        var copy = self
+        copy.tokenKind = .identifier(identifier.trimmingCharacters(in: CharacterSet(charactersIn: "`")))
+        return copy
+    }
+}
 
