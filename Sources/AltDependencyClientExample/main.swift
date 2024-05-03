@@ -3,8 +3,9 @@ import AltDependencyClient
 @AltDependencyClient
 struct Example {
     protocol Interface {
-        func foo(integer: Int) -> String
+        func foo(integer: inout Int) -> String
         func bar(from string: String) -> Int
-        func baz() async throws
+        func auto_closure(x: @autoclosure () -> ())
+        func `return`() async throws
     }
 }

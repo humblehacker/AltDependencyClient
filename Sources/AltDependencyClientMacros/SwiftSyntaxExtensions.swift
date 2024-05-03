@@ -52,3 +52,16 @@ extension TokenSyntax {
     }
 }
 
+extension FunctionParameterSyntax {
+    var isInOut: Bool {
+        type.as(AttributedTypeSyntax.self)?.specifier?.text == "inout"
+    }
+    
+    var isAutoClosure: Bool {
+        type.as(AttributedTypeSyntax.self)?.attributes
+            .compactMap { $0.as(AttributeSyntax.self) }
+            .compactMap { $0.attributeName.as(IdentifierTypeSyntax.self) }
+            .contains { $0.name.tokenKind == .identifier("autoclosure") }
+        ?? false
+    }
+}

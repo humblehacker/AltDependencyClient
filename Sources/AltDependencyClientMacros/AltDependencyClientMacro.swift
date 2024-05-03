@@ -210,11 +210,26 @@ public struct AltDependencyClientMacro: MemberMacro {
             leftParen: .leftParenToken(),
             arguments: LabeledExprListSyntax {
                 for parameter in functionDecl.signature.parameterClause.parameters {
-                    LabeledExprSyntax(
-                        expression: DeclReferenceExprSyntax(
-                            baseName: parameter.secondName ?? parameter.firstName
-                        )
+                    let baseExpr = DeclReferenceExprSyntax(
+                        baseName: parameter.secondName ?? parameter.firstName
                     )
+
+                    if parameter.isInOut {
+                        LabeledExprSyntax(
+                            expression: InOutExprSyntax(expression: baseExpr)
+                        )
+                    } else if parameter.isAutoClosure {
+                        LabeledExprSyntax(
+                            expression: FunctionCallExprSyntax(
+                                calledExpression: baseExpr,
+                                leftParen: .leftParenToken(),
+                                arguments: [],
+                                rightParen: .rightParenToken()
+                            )
+                        )
+                    } else {
+                        LabeledExprSyntax(expression: baseExpr)
+                    }
                 }
             },
             rightParen: .rightParenToken()
