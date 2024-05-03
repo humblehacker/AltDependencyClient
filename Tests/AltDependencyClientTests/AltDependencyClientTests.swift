@@ -111,5 +111,385 @@ final class AltDependencyClient: XCTestCase {
             """
         }
     }
+
+    func testTupleReturnValue() throws {
+        assertMacro {
+            """
+            @AltDependencyClient
+            struct Foo {
+              protocol Interface {
+                func bar(from: Integer) -> (String, Float)
+              }
+            }
+            """
+        } expansion: {
+            """
+            struct Foo {
+              protocol Interface {
+                func bar(from: Integer) -> (String, Float)
+              }
+
+              let impl: Impl
+
+              init(
+                bar: @escaping (_ from: Integer) -> (String, Float)
+              ) {
+                impl = Impl(
+                  bar: bar
+                )
+              }
+
+              @inlinable
+              @inline(__always)
+              func bar(from: Integer) -> (String, Float) {
+                impl.bar(from)
+              }
+
+              struct Impl {
+                var bar: (_ from: Integer) -> (String, Float)
+              }
+            }
+            """
+        }
+    }
+
+    func testVoidTupleReturnValue() throws {
+        assertMacro {
+            """
+            @AltDependencyClient
+            struct Foo {
+              protocol Interface {
+                func bar(from: Integer) -> ()
+              }
+            }
+            """
+        } expansion: {
+            """
+            struct Foo {
+              protocol Interface {
+                func bar(from: Integer) -> ()
+              }
+
+              let impl: Impl
+
+              init(
+                bar: @escaping (_ from: Integer) -> ()
+              ) {
+                impl = Impl(
+                  bar: bar
+                )
+              }
+
+              @inlinable
+              @inline(__always)
+              func bar(from: Integer) -> () {
+                impl.bar(from)
+              }
+
+              struct Impl {
+                var bar: (_ from: Integer) -> ()
+              }
+            }
+            """
+        }
+    }
+
+    func testOptionalReturnValue() {
+        assertMacro {
+            """
+            @AltDependencyClient
+            struct Foo {
+              protocol Interface {
+                func bar() -> Int?
+              }
+            }
+            """
+        } expansion: {
+            """
+            struct Foo {
+              protocol Interface {
+                func bar() -> Int?
+              }
+
+              let impl: Impl
+
+              init(
+                bar: @escaping () -> Int?
+              ) {
+                impl = Impl(
+                  bar: bar
+                )
+              }
+
+              @inlinable
+              @inline(__always)
+              func bar() -> Int? {
+                impl.bar()
+              }
+
+              struct Impl {
+                var bar: () -> Int?
+              }
+            }
+            """
+        }
+    }
+
+    func testExplicitOptionalReturnValue() {
+        assertMacro {
+            """
+            @AltDependencyClient
+            struct Foo {
+              protocol Interface {
+                func bar() -> Optional<Int>
+              }
+            }
+            """
+        } expansion: {
+            """
+            struct Foo {
+              protocol Interface {
+                func bar() -> Optional<Int>
+              }
+
+              let impl: Impl
+
+              init(
+                bar: @escaping () -> Optional<Int>
+              ) {
+                impl = Impl(
+                  bar: bar
+                )
+              }
+
+              @inlinable
+              @inline(__always)
+              func bar() -> Optional<Int> {
+                impl.bar()
+              }
+
+              struct Impl {
+                var bar: () -> Optional<Int>
+              }
+            }
+            """
+        }
+    }
+
+    func testLabledArguments() {
+        assertMacro {
+            """
+            @AltDependencyClient
+            struct Foo {
+              protocol Interface {
+                func bar(from: Int) -> Void
+                func baz(with something: String) -> Void
+              }
+            }
+            """
+        } expansion: {
+            """
+            struct Foo {
+              protocol Interface {
+                func bar(from: Int) -> Void
+                func baz(with something: String) -> Void
+              }
+
+              let impl: Impl
+
+              init(
+                bar: @escaping (_ from: Int) -> Void,
+                baz: @escaping (_ something: String) -> Void
+              ) {
+                impl = Impl(
+                  bar: bar,
+                  baz: baz
+                )
+              }
+
+              @inlinable
+              @inline(__always)
+              func bar(from: Int) -> Void {
+                impl.bar(from)
+              }
+
+              @inlinable
+              @inline(__always)
+              func baz(with something: String) -> Void {
+                impl.baz(something)
+              }
+
+              struct Impl {
+                var bar: (_ from: Int) -> Void
+                var baz: (_ something: String) -> Void
+              }
+            }
+            """
+        }
+    }
+
+    func testEscapedIdentifier() {
+        assertMacro {
+            """
+            @AltDependencyClient
+            struct Foo {
+              protocol Interface {
+                func `return`(from: Int) -> Void
+              }
+            }
+            """
+        } expansion: {
+            """
+            struct Foo {
+              protocol Interface {
+                func `return`(from: Int) -> Void
+              }
+
+              let impl: Impl
+
+              init(
+                `return`: @escaping (_ from: Int) -> Void
+              ) {
+                impl = Impl(
+                  return: `return`
+                )
+              }
+
+              @inlinable
+              @inline(__always)
+              func `return`(from: Int) -> Void {
+                impl.`return`(from)
+              }
+
+              struct Impl {
+                var `return`: (_ from: Int) -> Void
+              }
+            }
+            """
+        }
+    }
+
+    func testInOut() {
+        assertMacro {
+            """
+            @AltDependencyClient
+            struct Foo {
+              protocol Interface {
+                func bar(from: inout Int) -> Void
+              }
+            }
+            """
+        } expansion: {
+            """
+            struct Foo {
+              protocol Interface {
+                func bar(from: inout Int) -> Void
+              }
+
+              let impl: Impl
+
+              init(
+                bar: @escaping (_ from: inout Int) -> Void
+              ) {
+                impl = Impl(
+                  bar: bar
+                )
+              }
+
+              @inlinable
+              @inline(__always)
+              func bar(from: inout Int) -> Void {
+                impl.bar(&from)
+              }
+
+              struct Impl {
+                var bar: (_ from: inout Int) -> Void
+              }
+            }
+            """
+        }
+    }
+
+    func testClosureParameter() {
+        assertMacro {
+            """
+            @AltDependencyClient
+            struct Foo {
+              protocol Interface {
+                func bar(from: (Int) -> Void) -> Void
+              }
+            }
+            """
+        } expansion: {
+            """
+            struct Foo {
+              protocol Interface {
+                func bar(from: (Int) -> Void) -> Void
+              }
+
+              let impl: Impl
+
+              init(
+                bar: @escaping (_ from: (Int) -> Void) -> Void
+              ) {
+                impl = Impl(
+                  bar: bar
+                )
+              }
+
+              @inlinable
+              @inline(__always)
+              func bar(from: (Int) -> Void) -> Void {
+                impl.bar(from)
+              }
+
+              struct Impl {
+                var bar: (_ from: (Int) -> Void) -> Void
+              }
+            }
+            """
+        }
+    }
+
+    func testAutoclosure() {
+        assertMacro {
+            """
+            @AltDependencyClient
+            struct Foo {
+              protocol Interface {
+                func bar(from: @autoclosure () -> Void) -> Void
+              }
+            }
+            """
+        } expansion: {
+            """
+            struct Foo {
+              protocol Interface {
+                func bar(from: @autoclosure () -> Void) -> Void
+              }
+
+              let impl: Impl
+
+              init(
+                bar: @escaping (_ from: @autoclosure () -> Void) -> Void
+              ) {
+                impl = Impl(
+                  bar: bar
+                )
+              }
+
+              @inlinable
+              @inline(__always)
+              func bar(from: @autoclosure () -> Void) -> Void {
+                impl.bar(from())
+              }
+
+              struct Impl {
+                var bar: (_ from: @autoclosure () -> Void) -> Void
+              }
+            }
+            """
+        }
+    }
 }
 #endif
