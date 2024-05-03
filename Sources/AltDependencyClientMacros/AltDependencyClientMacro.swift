@@ -56,33 +56,28 @@ public struct AltDependencyClientMacro: MemberMacro {
         return InitializerDeclSyntax(
             signature: FunctionSignatureSyntax(
                 parameterClause: FunctionParameterClauseSyntax(
-                    parameters: FunctionParameterListSyntax(
-                        interfaceFunctionDecls.enumerated()
-                            .map { (index, functionDecl) in
-                                FunctionParameterSyntax(
-                                    leadingTrivia: .newline,
-                                    firstName: .identifier(functionDecl.name.text),
-                                    type: TypeSyntax(
-                                        AttributedTypeSyntax(
-                                            attributes: AttributeListSyntax(
-                                                [
-                                                    .attribute(.atEscaping(
-                                                        trailingTrivia: .space
-                                                    ))
-                                                ]
-                                            ),
-                                            baseType: closureFunctionType(from: functionDecl)
-                                        )
-                                    ),
-                                    trailingComma: index < lastIndex ? .commaToken() : nil
-                                )
-                            }
-                    ),
+                    parameters: FunctionParameterListSyntax {
+                        for (index, functionDecl) in interfaceFunctionDecls.enumerated() {
+                            FunctionParameterSyntax(
+                                leadingTrivia: .newline,
+                                firstName: .identifier(functionDecl.name.text),
+                                type: TypeSyntax(
+                                    AttributedTypeSyntax(
+                                        attributes: AttributeListSyntax {
+                                            .attribute(.atEscaping(trailingTrivia: .space))
+                                        },
+                                        baseType: closureFunctionType(from: functionDecl)
+                                    )
+                                ),
+                                trailingComma: index < lastIndex ? .commaToken() : nil
+                            )
+                        }
+                    },
                     rightParen: .rightParenToken(leadingTrivia: .newline)
                 )
             ),
             body: CodeBlockSyntax(
-                statements: CodeBlockItemListSyntax( [
+                statements: CodeBlockItemListSyntax {
                     CodeBlockItemSyntax(
                         item: .expr(
                             ExprSyntax(
@@ -94,25 +89,23 @@ public struct AltDependencyClientMacro: MemberMacro {
                                         leftParen: .leftParenToken(),
                                         rightParen: .rightParenToken(leadingTrivia: .newline),
                                         argumentsBuilder: {
-                                            LabeledExprListSyntax(
-                                                interfaceFunctionDecls
-                                                    .map { functionDecl in
-                                                        let functionName = functionDecl.name.text
-                                                        return LabeledExprSyntax(
-                                                            leadingTrivia: .newline,
-                                                            label: .identifier(functionName),
-                                                            colon: .colonToken(),
-                                                            expression: DeclReferenceExprSyntax(baseName: .identifier(functionName))
-                                                        )
-                                                    }
-                                            )
+                                            LabeledExprListSyntax {
+                                                for functionDecl in interfaceFunctionDecls {
+                                                    LabeledExprSyntax(
+                                                        leadingTrivia: .newline,
+                                                        label: functionDecl.name,
+                                                        colon: .colonToken(),
+                                                        expression: DeclReferenceExprSyntax(baseName: functionDecl.name)
+                                                    )
+                                                }
+                                            }
                                         }
                                     )
                                 )
                             )
                         )
                     )
-                ] )
+                }
             )
         )
     }
@@ -170,10 +163,10 @@ public struct AltDependencyClientMacro: MemberMacro {
 
     static func wrapperFunctionDecl(from functionDecl: FunctionDeclSyntax) -> FunctionDeclSyntax {
         var newDecl = functionDecl
-        newDecl.attributes = AttributeListSyntax([
-            .attribute(.atInlinable(trailingTrivia: .newline)),
-            .attribute(.atInline(option: .always))
-        ])
+        newDecl.attributes = AttributeListSyntax {
+            AttributeSyntax.atInlinable(trailingTrivia: .newline)
+            AttributeSyntax.atInline(option: .always)
+        }
         // After adding attributes above, the inherited func keyword retains its leading indent,
         // resulting in bad formatting. So we replace it with one without the indent.
         newDecl.funcKeyword = .keyword(.func, leadingTrivia: .newline)
@@ -188,20 +181,20 @@ public struct AltDependencyClientMacro: MemberMacro {
                 declName: DeclReferenceExprSyntax(baseName: functionDecl.name)
             ),
             leftParen: .leftParenToken(),
-            arguments: LabeledExprListSyntax(
-                functionDecl.signature.parameterClause.parameters.map {
+            arguments: LabeledExprListSyntax {
+                for parameter in functionDecl.signature.parameterClause.parameters {
                     LabeledExprSyntax(
                         expression: DeclReferenceExprSyntax(
-                            baseName: .identifier(($0.secondName ?? $0.firstName).text)
+                            baseName: parameter.secondName ?? parameter.firstName
                         )
                     )
                 }
-            ),
+            },
             rightParen: .rightParenToken()
         )
 
         return CodeBlockSyntax(
-            statements: CodeBlockItemListSyntax([
+            statements: CodeBlockItemListSyntax {
                 CodeBlockItemSyntax(
                     item: .expr(
                         ExprSyntax(
@@ -214,8 +207,8 @@ public struct AltDependencyClientMacro: MemberMacro {
                             )
                         )
                     )
-                )]
-            )
+                )
+            }
         )
     }
 
