@@ -120,35 +120,20 @@ public struct AltDependencyClientMacro: MemberMacro {
     // MARK: - `struct Impl` generation
 
     static func implStructDecl(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> StructDeclSyntax {
-        StructDeclSyntax(
-            name: Self.implStructName,
-            memberBlock: MemberBlockSyntax(
-                members: implStructMembers(from: interfaceFunctionDecls)
-            )
-        )
-    }
-
-    static func implStructMembers(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> MemberBlockItemListSyntax {
-        MemberBlockItemListSyntax(
-            implStructVariableDecls(from: interfaceFunctionDecls)
-                .map { MemberBlockItemSyntax(decl: $0) }
-        )
-    }
-
-    // Generates block of closure vars corresponding to functions defined in `protocol Interface`
-    // This forms the body of `struct Impl`.
-    static func implStructVariableDecls(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> [VariableDeclSyntax] {
-        interfaceFunctionDecls
-            .map { functionDecl in
-                VariableDeclSyntax.init(
+        StructDeclSyntax(name: Self.implStructName) {
+            for functionDecl in interfaceFunctionDecls {
+                VariableDeclSyntax(
                     attributes: functionDecl.attributes,
                     modifiers: functionDecl.modifiers,
-                    .var,
-                    name: PatternSyntax(stringLiteral: functionDecl.name.text),
-                    type: TypeAnnotationSyntax(type: closureFunctionType(from: functionDecl)),
-                    initializer: nil
-                )
+                    bindingSpecifier: .keyword(.var)
+                ) {
+                    PatternBindingSyntax(
+                        pattern: IdentifierPatternSyntax(identifier: functionDecl.name),
+                        typeAnnotation: TypeAnnotationSyntax(type: closureFunctionType(from: functionDecl))
+                    )
+                }
             }
+        }
     }
 
     static func closureFunctionType(from functionDecl: FunctionDeclSyntax) -> FunctionTypeSyntax {
