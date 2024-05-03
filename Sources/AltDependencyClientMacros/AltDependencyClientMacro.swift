@@ -138,7 +138,16 @@ public struct AltDependencyClientMacro: MemberMacro {
 
     static func closureFunctionType(from functionDecl: FunctionDeclSyntax) -> FunctionTypeSyntax {
         FunctionTypeSyntax(
-            parameters: closureParameters(from: functionDecl.signature.parameterClause.parameters),
+            parameters: TupleTypeElementListSyntax {
+                for functionParameter in functionDecl.signature.parameterClause.parameters {
+                    TupleTypeElementSyntax(
+                        firstName: .wildcardToken(),
+                        secondName: functionParameter.secondName ?? functionParameter.firstName,
+                        colon: .colonToken(),
+                        type: functionParameter.type
+                    )
+                }
+            },
             effectSpecifiers: typeEffectSpecifiers(from: functionDecl.signature.effectSpecifiers),
             returnClause: functionDecl.signature.returnClause ?? .void
         )
@@ -149,19 +158,6 @@ public struct AltDependencyClientMacro: MemberMacro {
         return TypeEffectSpecifiersSyntax(
             asyncSpecifier: functionEffectSpecifiers.asyncSpecifier,
             throwsSpecifier: functionEffectSpecifiers.throwsSpecifier
-        )
-    }
-
-    static func closureParameters(from functionParameterList: FunctionParameterListSyntax) -> TupleTypeElementListSyntax {
-        TupleTypeElementListSyntax(functionParameterList.map(tupleTypeElement(from:)))
-    }
-
-    static func tupleTypeElement(from functionParameter: FunctionParameterSyntax) -> TupleTypeElementSyntax {
-        TupleTypeElementSyntax(
-            firstName: .wildcardToken(),
-            secondName: functionParameter.secondName ?? functionParameter.firstName,
-            colon: .colonToken(),
-            type: functionParameter.type
         )
     }
 
