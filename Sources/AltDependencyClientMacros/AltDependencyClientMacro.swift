@@ -176,7 +176,27 @@ public struct AltDependencyClientMacro: MemberMacro {
     }
 
     static func newFunctionBody(from functionDecl: FunctionDeclSyntax) -> CodeBlockSyntax {
-        let functionCallExpr = FunctionCallExprSyntax(
+        CodeBlockSyntax(
+            statements: CodeBlockItemListSyntax {
+                CodeBlockItemSyntax(
+                    item: .expr(
+                        ExprSyntax(
+                            maybeTry(
+                                expression: maybeAwait(
+                                    expression: functionCallExpr(from: functionDecl),
+                                    from: functionDecl
+                                ),
+                                from: functionDecl
+                            )
+                        )
+                    )
+                )
+            }
+        )
+    }
+
+    static func functionCallExpr(from functionDecl: FunctionDeclSyntax) -> FunctionCallExprSyntax {
+        FunctionCallExprSyntax(
             calledExpression: MemberAccessExprSyntax(
                 base: DeclReferenceExprSyntax(baseName: Self.implMemberName),
                 declName: DeclReferenceExprSyntax(baseName: functionDecl.name)
@@ -192,24 +212,6 @@ public struct AltDependencyClientMacro: MemberMacro {
                 }
             },
             rightParen: .rightParenToken()
-        )
-
-        return CodeBlockSyntax(
-            statements: CodeBlockItemListSyntax {
-                CodeBlockItemSyntax(
-                    item: .expr(
-                        ExprSyntax(
-                            maybeTry(
-                                expression: maybeAwait(
-                                    expression: functionCallExpr,
-                                    from: functionDecl
-                                ),
-                                from: functionDecl
-                            )
-                        )
-                    )
-                )
-            }
         )
     }
 
