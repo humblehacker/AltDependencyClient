@@ -1,7 +1,7 @@
 import AltDependencyClient
 
 @AltDependencyClient
-struct Foo {
+struct Example {
     protocol Interface {
         func foo(integer: Int) -> String
         func bar(from string: String) -> Int
