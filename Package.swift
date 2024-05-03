@@ -5,17 +5,17 @@ import PackageDescription
 import CompilerPluginSupport
 
 let package = Package(
-    name: "ReplaceableImplementation",
+    name: "AltDependencyClient",
     platforms: [.macOS(.v10_15), .iOS(.v13), .tvOS(.v13), .watchOS(.v6), .macCatalyst(.v13)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "ReplaceableImplementation",
-            targets: ["ReplaceableImplementation"]
+            name: "AltDependencyClient",
+            targets: ["AltDependencyClient"]
         ),
         .executable(
-            name: "ReplaceableImplementationExample",
-            targets: ["ReplaceableImplementationExample"]
+            name: "AltDependencyClientExample",
+            targets: ["AltDependencyClientExample"]
         ),
     ],
     dependencies: [
@@ -27,7 +27,7 @@ let package = Package(
         // Targets can depend on other targets in this package and products from dependencies.
         // Macro implementation that performs the source transformation of a macro.
         .macro(
-            name: "ReplaceableImplementationMacros",
+            name: "AltDependencyClientMacros",
             dependencies: [
                 .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
@@ -35,16 +35,16 @@ let package = Package(
         ),
 
         // Library that exposes a macro as part of its API, which is used in client programs.
-        .target(name: "ReplaceableImplementation", dependencies: ["ReplaceableImplementationMacros"]),
+        .target(name: "AltDependencyClient", dependencies: ["AltDependencyClientMacros"]),
 
         // A client of the library, which is able to use the macro in its own code.
-        .executableTarget(name: "ReplaceableImplementationExample", dependencies: ["ReplaceableImplementation"]),
+        .executableTarget(name: "AltDependencyClientExample", dependencies: ["AltDependencyClient"]),
 
         // A test target used to develop the macro implementation.
         .testTarget(
-            name: "ReplaceableImplementationTests",
+            name: "AltDependencyClientTests",
             dependencies: [
-                "ReplaceableImplementationMacros",
+                "AltDependencyClientMacros",
                 .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
                 .product(name: "MacroTesting", package: "swift-macro-testing"),
             ]

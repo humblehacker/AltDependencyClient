@@ -5,7 +5,7 @@ import SwiftSyntaxBuilder
 import SwiftSyntaxMacroExpansion
 import SwiftSyntaxMacros
 
-public struct ReplaceableImplementationMacro: MemberMacro {
+public struct AltDependencyClientMacro: MemberMacro {
     static let interfaceName = "Interface"
     static let implStructName = TokenSyntax.identifier("Impl")
     static let implMemberName = TokenSyntax.identifier("impl")
@@ -19,7 +19,7 @@ public struct ReplaceableImplementationMacro: MemberMacro {
         guard let structDecl = declaration.as(StructDeclSyntax.self) else {
             context.emitDiagnostic(
                 node: declaration,
-                message: "'@ReplaceableImplementation' can only be applied to structs"
+                message: "'@AltDependencyClient' can only be applied to structs"
             )
             return []
         }
@@ -27,7 +27,7 @@ public struct ReplaceableImplementationMacro: MemberMacro {
         guard let interfaceProtocolDecl = structDecl.memberBlock.members.first?.decl.as(ProtocolDeclSyntax.self),
               interfaceProtocolDecl.name.text == interfaceName
         else {
-            context.emitDiagnostic(node: structDecl, message: "'@ReplaceableImplementation' requires a nested protocol named '\(interfaceName)'")
+            context.emitDiagnostic(node: structDecl, message: "'@AltDependencyClient' requires a nested protocol named '\(interfaceName)'")
 
             return []
         }
@@ -309,8 +309,8 @@ extension MacroExpansionContext {
 }
 
 @main
-struct ReplaceableImplementationPlugin: CompilerPlugin {
+struct AltDependencyClientPlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
-        ReplaceableImplementationMacro.self
+        AltDependencyClientMacro.self
     ]
 }

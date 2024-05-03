@@ -1,6 +1,6 @@
-import ReplaceableImplementation
+import AltDependencyClient
 
-@ReplaceableImplementation
+@AltDependencyClient
 struct Foo {
     protocol Interface {
         func foo(integer: Int) -> String
