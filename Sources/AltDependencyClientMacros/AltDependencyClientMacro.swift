@@ -149,10 +149,9 @@ public struct AltDependencyClientMacro: MemberMacro {
     }
 
     static func typeEffectSpecifiers(from functionEffectSpecifiers: FunctionEffectSpecifiersSyntax?) -> TypeEffectSpecifiersSyntax? {
-        guard let functionEffectSpecifiers else { return nil }
-        return TypeEffectSpecifiersSyntax(
-            asyncSpecifier: functionEffectSpecifiers.asyncSpecifier,
-            throwsSpecifier: functionEffectSpecifiers.throwsSpecifier
+        TypeEffectSpecifiersSyntax(
+            asyncSpecifier: functionEffectSpecifiers?.asyncSpecifier,
+            throwsSpecifier: functionEffectSpecifiers?.throwsSpecifier
         )
     }
 
