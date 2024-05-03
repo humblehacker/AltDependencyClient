@@ -169,11 +169,11 @@ public struct AltDependencyClientMacro: MemberMacro {
         // After adding attributes above, the inherited func keyword retains its leading indent,
         // resulting in bad formatting. So we replace it with one without the indent.
         newDecl.funcKeyword = .keyword(.func, leadingTrivia: .newline)
-        newDecl.body = newFunctionBody(from: functionDecl)
+        newDecl.body = wrapperFunctionBody(from: functionDecl)
         return newDecl
     }
 
-    static func newFunctionBody(from functionDecl: FunctionDeclSyntax) -> CodeBlockSyntax {
+    static func wrapperFunctionBody(from functionDecl: FunctionDeclSyntax) -> CodeBlockSyntax {
         CodeBlockSyntax(
             statements: CodeBlockItemListSyntax {
                 CodeBlockItemSyntax(
