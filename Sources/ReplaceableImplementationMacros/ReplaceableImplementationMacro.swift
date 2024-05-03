@@ -197,27 +197,35 @@ public struct ReplaceableImplementationMacro: MemberMacro {
     }
 
     static func newFunctionBody(from functionDecl: FunctionDeclSyntax) -> CodeBlockSyntax {
+        let functionCallExpr = FunctionCallExprSyntax(
+            calledExpression: MemberAccessExprSyntax(
+                base: DeclReferenceExprSyntax(baseName: Self.implMemberName),
+                declName: DeclReferenceExprSyntax(baseName: functionDecl.name)
+            ),
+            leftParen: .leftParenToken(),
+            arguments: LabeledExprListSyntax(
+                functionDecl.signature.parameterClause.parameters.map {
+                    LabeledExprSyntax(
+                        expression: DeclReferenceExprSyntax(
+                            baseName: .identifier(($0.secondName ?? $0.firstName).text)
+                        )
+                    )
+                }
+            ),
+            rightParen: .rightParenToken()
+        )
+
         return CodeBlockSyntax(
             statements: CodeBlockItemListSyntax([
                 CodeBlockItemSyntax(
                     item: .expr(
                         ExprSyntax(
-                            FunctionCallExprSyntax(
-                                calledExpression: MemberAccessExprSyntax(
-                                    base: DeclReferenceExprSyntax(baseName: Self.implMemberName),
-                                    declName: DeclReferenceExprSyntax(baseName: functionDecl.name)
+                            maybeTry(
+                                expression: maybeAwait(
+                                    expression: functionCallExpr,
+                                    from: functionDecl
                                 ),
-                                leftParen: .leftParenToken(),
-                                arguments: LabeledExprListSyntax(
-                                    functionDecl.signature.parameterClause.parameters.map {
-                                        LabeledExprSyntax(
-                                            expression: DeclReferenceExprSyntax(
-                                                baseName: .identifier(($0.secondName ?? $0.firstName).text)
-                                            )
-                                        )
-                                    }
-                                ),
-                                rightParen: .rightParenToken()
+                                from: functionDecl
                             )
                         )
                     )
@@ -225,6 +233,17 @@ public struct ReplaceableImplementationMacro: MemberMacro {
             )
         )
     }
+
+    static func maybeAwait(expression: some ExprSyntaxProtocol, from functionDecl: FunctionDeclSyntax) -> any ExprSyntaxProtocol {
+        guard functionDecl.signature.effectSpecifiers?.asyncSpecifier != nil else { return expression }
+        return AwaitExprSyntax(expression: expression)
+    }
+
+    static func maybeTry(expression: some ExprSyntaxProtocol, from functionDecl: FunctionDeclSyntax) -> any ExprSyntaxProtocol {
+        guard functionDecl.signature.effectSpecifiers?.throwsSpecifier != nil else { return expression }
+        return TryExprSyntax(expression: expression)
+    }
+
 }
 
 // MARK: - Extensions

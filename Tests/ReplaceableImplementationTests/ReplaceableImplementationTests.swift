@@ -64,7 +64,7 @@ final class ReplaceableImplementationTests: XCTestCase {
               }
 
               func baz() async throws {
-                impl.baz()
+                try await impl.baz()
               }
 
               struct Impl {
@@ -114,7 +114,7 @@ final class ReplaceableImplementationTests: XCTestCase {
               }
 
               func baz() async throws {
-                impl.baz()
+                try await impl.baz()
               }
 
               struct Impl {
