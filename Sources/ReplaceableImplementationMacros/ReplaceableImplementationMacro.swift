@@ -197,13 +197,31 @@ public struct ReplaceableImplementationMacro: MemberMacro {
     }
 
     static func newFunctionBody(from functionDecl: FunctionDeclSyntax) -> CodeBlockSyntax {
-        let functionName = functionDecl.name.text
-        let parameterNames = functionDecl.signature.parameterClause.parameters.map { ($0.secondName ?? $0.firstName).text }
         return CodeBlockSyntax(
-            statements: CodeBlockItemListSyntax(
-                stringLiteral: """
-                return \(Self.implMemberName).\(functionName)(\(parameterNames.joined(separator: ", ")))
-                """
+            statements: CodeBlockItemListSyntax([
+                CodeBlockItemSyntax(
+                    item: .expr(
+                        ExprSyntax(
+                            FunctionCallExprSyntax(
+                                calledExpression: MemberAccessExprSyntax(
+                                    base: DeclReferenceExprSyntax(baseName: Self.implMemberName),
+                                    declName: DeclReferenceExprSyntax(baseName: functionDecl.name)
+                                ),
+                                leftParen: .leftParenToken(),
+                                arguments: LabeledExprListSyntax(
+                                    functionDecl.signature.parameterClause.parameters.map {
+                                        LabeledExprSyntax(
+                                            expression: DeclReferenceExprSyntax(
+                                                baseName: .identifier(($0.secondName ?? $0.firstName).text)
+                                            )
+                                        )
+                                    }
+                                ),
+                                rightParen: .rightParenToken()
+                            )
+                        )
+                    )
+                )]
             )
         )
     }

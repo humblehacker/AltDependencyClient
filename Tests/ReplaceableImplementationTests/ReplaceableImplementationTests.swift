@@ -56,15 +56,15 @@ final class ReplaceableImplementationTests: XCTestCase {
               }
 
               func foo(integer: Int) -> String {
-                return impl.foo(integer)
+                impl.foo(integer)
               }
 
               func bar(from string: String) -> Int {
-                return impl.bar(string)
+                impl.bar(string)
               }
 
               func baz() async throws {
-                return impl.baz()
+                impl.baz()
               }
 
               struct Impl {
@@ -106,15 +106,15 @@ final class ReplaceableImplementationTests: XCTestCase {
               }
 
               func foo(integer: Int) -> String {
-                return impl.foo(integer)
+                impl.foo(integer)
               }
 
               func bar(from string: String) -> Int {
-                return impl.bar(string)
+                impl.bar(string)
               }
 
               func baz() async throws {
-                return impl.baz()
+                impl.baz()
               }
 
               struct Impl {
