@@ -54,11 +54,11 @@ public struct AltDependencyClientMacro: MemberMacro {
     // MARK: - initializer generation
 
     static func initDecl(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> InitializerDeclSyntax {
-        let lastIndex = interfaceFunctionDecls.count - 1
         return InitializerDeclSyntax(
             signature: FunctionSignatureSyntax(
                 parameterClause: FunctionParameterClauseSyntax(
                     parameters: FunctionParameterListSyntax {
+                        let lastIndex = interfaceFunctionDecls.count - 1
                         for (index, functionDecl) in interfaceFunctionDecls.enumerated() {
                             FunctionParameterSyntax(
                                 leadingTrivia: .newline,
