@@ -19,75 +19,18 @@ final class ReplaceableImplementationTests: XCTestCase {
         }
     }
 
-    static let mainMacroInput =
-        """
-        @ReplaceableImplementation
-        struct Foo {
-          protocol Interface {
-            func foo(integer: Int) -> String
-            func bar(from string: String) -> Int
-            func baz() async throws
-          }
-        }
-        """
-
     func testReplaceableImplementationMacro() throws {
-        assertMacroExpansion(Self.mainMacroInput,
-            expandedSource: """
+        assertMacro {
+            """
+            @ReplaceableImplementation
             struct Foo {
               protocol Interface {
                 func foo(integer: Int) -> String
                 func bar(from string: String) -> Int
                 func baz() async throws
               }
-
-              let impl: Impl
-
-              init(
-                foo: @escaping (_ integer: Int) -> String,
-                bar: @escaping (_ string: String) -> Int,
-                baz: @escaping () async throws -> Void
-              ) {
-                impl = Impl(
-                  foo: foo,
-                  bar: bar,
-                  baz: baz
-                )
-              }
-
-              @inlinable
-              @inline(__always)
-              func foo(integer: Int) -> String {
-                impl.foo(integer)
-              }
-
-              @inlinable
-              @inline(__always)
-              func bar(from string: String) -> Int {
-                impl.bar(string)
-              }
-
-              @inlinable
-              @inline(__always)
-              func baz() async throws {
-                try await impl.baz()
-              }
-
-              struct Impl {
-                var foo: (_ integer: Int) -> String
-                var bar: (_ string: String) -> Int
-                var baz: () async throws -> Void
-              }
             }
-            """,
-            macros: ["ReplaceableImplementation": ReplaceableImplementationMacro.self],
-            indentationWidth: .spaces(2)
-        )
-    }
-
-    func testReplaceableImplementationMacro2() throws {
-        assertMacro {
-            Self.mainMacroInput
+            """
         } expansion: {
             """
             struct Foo {
