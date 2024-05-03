@@ -66,12 +66,9 @@ public struct ReplaceableImplementationMacro: MemberMacro {
                                         AttributedTypeSyntax(
                                             attributes: AttributeListSyntax(
                                                 [
-                                                    .attribute(
-                                                        AttributeSyntax(
-                                                            attributeName: IdentifierTypeSyntax(name: .keyword(.escaping)),
-                                                            trailingTrivia: .space
-                                                        )
-                                                    )
+                                                    .attribute(.atEscaping(
+                                                        trailingTrivia: .space
+                                                    ))
                                                 ]
                                             ),
                                             baseType: closureFunctionType(from: functionDecl)
@@ -192,6 +189,13 @@ public struct ReplaceableImplementationMacro: MemberMacro {
 
     static func wrapperFunctionDecl(from functionDecl: FunctionDeclSyntax) -> FunctionDeclSyntax {
         var newDecl = functionDecl
+        newDecl.attributes = AttributeListSyntax([
+            .attribute(.atInlinable(trailingTrivia: .newline)),
+            .attribute(.atInline(option: .always))
+        ])
+        // After adding attributes above, the inherited func keyword retains its leading indent,
+        // resulting in bad formatting. So we replace it with one without the indent.
+        newDecl.funcKeyword = .keyword(.func, leadingTrivia: .newline)
         newDecl.body = newFunctionBody(from: functionDecl)
         return newDecl
     }
@@ -254,6 +258,40 @@ extension TypeSyntaxProtocol where Self == TypeSyntax {
 
 extension ReturnClauseSyntax {
     static var void: Self { ReturnClauseSyntax(type: .void) }
+}
+
+extension AttributeSyntax {
+    static func atEscaping(leadingTrivia: Trivia? = nil, trailingTrivia: Trivia? = nil) -> Self {
+        .init(
+            leadingTrivia: leadingTrivia,
+            attributeName: IdentifierTypeSyntax(name: .keyword(.escaping)),
+            trailingTrivia: trailingTrivia
+        )
+    }
+
+    enum InlineOption: String {
+        case always = "__always"
+        case never  = "never"
+    }
+
+    static func atInline(leadingTrivia: Trivia? = nil, option: InlineOption, trailingTrivia: Trivia? = nil) -> Self {
+        .init(
+            leadingTrivia: leadingTrivia,
+            attributeName: IdentifierTypeSyntax(name: .identifier("inline")),
+            leftParen: .leftParenToken(),
+            arguments: .token(.identifier(option.rawValue)),
+            rightParen: .rightParenToken(),
+            trailingTrivia: trailingTrivia
+        )
+    }
+
+    static func atInlinable(leadingTrivia: Trivia? = nil, trailingTrivia: Trivia? = nil) -> Self {
+        .init(
+            leadingTrivia: leadingTrivia,
+            attributeName: IdentifierTypeSyntax(name: .identifier("inlinable")),
+            trailingTrivia: trailingTrivia
+        )
+    }
 }
 
 extension MacroExpansionContext {

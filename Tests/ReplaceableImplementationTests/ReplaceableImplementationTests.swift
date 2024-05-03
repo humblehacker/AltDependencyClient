@@ -55,14 +55,20 @@ final class ReplaceableImplementationTests: XCTestCase {
                 )
               }
 
+              @inlinable
+              @inline(__always)
               func foo(integer: Int) -> String {
                 impl.foo(integer)
               }
 
+              @inlinable
+              @inline(__always)
               func bar(from string: String) -> Int {
                 impl.bar(string)
               }
 
+              @inlinable
+              @inline(__always)
               func baz() async throws {
                 try await impl.baz()
               }
@@ -105,14 +111,20 @@ final class ReplaceableImplementationTests: XCTestCase {
                 )
               }
 
+              @inlinable
+              @inline(__always)
               func foo(integer: Int) -> String {
                 impl.foo(integer)
               }
 
+              @inlinable
+              @inline(__always)
               func bar(from string: String) -> Int {
                 impl.bar(string)
               }
 
+              @inlinable
+              @inline(__always)
               func baz() async throws {
                 try await impl.baz()
               }
