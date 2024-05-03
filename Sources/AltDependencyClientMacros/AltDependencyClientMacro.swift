@@ -58,8 +58,7 @@ public struct AltDependencyClientMacro: MemberMacro {
             signature: FunctionSignatureSyntax(
                 parameterClause: FunctionParameterClauseSyntax(
                     parameters: FunctionParameterListSyntax {
-                        let lastIndex = interfaceFunctionDecls.count - 1
-                        for (index, functionDecl) in interfaceFunctionDecls.enumerated() {
+                        for functionDecl in interfaceFunctionDecls {
                             FunctionParameterSyntax(
                                 leadingTrivia: .newline,
                                 firstName: .identifier(functionDecl.name.text),
@@ -70,8 +69,7 @@ public struct AltDependencyClientMacro: MemberMacro {
                                         },
                                         baseType: closureFunctionType(from: functionDecl)
                                     )
-                                ),
-                                trailingComma: index < lastIndex ? .commaToken() : nil
+                                )
                             )
                         }
                     },
