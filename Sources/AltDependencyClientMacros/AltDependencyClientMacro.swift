@@ -27,8 +27,10 @@ public struct AltDependencyClientMacro: MemberMacro {
         guard let interfaceProtocolDecl = structDecl.memberBlock.members.first?.decl.as(ProtocolDeclSyntax.self),
               interfaceProtocolDecl.name.text == interfaceName
         else {
-            context.emitDiagnostic(node: structDecl, message: "'@AltDependencyClient' requires a nested protocol named '\(interfaceName)'")
-
+            context.emitDiagnostic(
+                node: structDecl,
+                message: "'@AltDependencyClient' requires a nested protocol named '\(interfaceName)'"
+            )
             return []
         }
 
