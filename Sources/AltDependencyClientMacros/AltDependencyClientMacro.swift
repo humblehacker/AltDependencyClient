@@ -66,7 +66,7 @@ public struct AltDependencyClientMacro: MemberMacro {
                                 type: TypeSyntax(
                                     AttributedTypeSyntax(
                                         attributes: AttributeListSyntax {
-                                            .attribute(.atEscaping(trailingTrivia: .space))
+                                            AttributeSyntax.atEscaping(trailingTrivia: .space)
                                         },
                                         baseType: closureFunctionType(from: functionDecl)
                                     )
