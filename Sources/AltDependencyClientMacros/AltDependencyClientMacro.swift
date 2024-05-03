@@ -55,58 +55,66 @@ public struct AltDependencyClientMacro: MemberMacro {
 
     static func initDecl(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> InitializerDeclSyntax {
         return InitializerDeclSyntax(
-            signature: FunctionSignatureSyntax(
-                parameterClause: FunctionParameterClauseSyntax(
-                    parameters: FunctionParameterListSyntax {
-                        for functionDecl in interfaceFunctionDecls {
-                            FunctionParameterSyntax(
-                                leadingTrivia: .newline,
-                                firstName: .identifier(functionDecl.name.text),
-                                type: TypeSyntax(
-                                    AttributedTypeSyntax(
-                                        attributes: AttributeListSyntax {
-                                            AttributeSyntax.atEscaping(trailingTrivia: .space)
-                                        },
-                                        baseType: closureFunctionType(from: functionDecl)
-                                    )
+            signature: initializerSignature(from: interfaceFunctionDecls),
+            body: initializerBody(from: interfaceFunctionDecls)
+        )
+    }
+
+    static func initializerSignature(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> FunctionSignatureSyntax {
+        FunctionSignatureSyntax(
+            parameterClause: FunctionParameterClauseSyntax(
+                parameters: FunctionParameterListSyntax {
+                    for functionDecl in interfaceFunctionDecls {
+                        FunctionParameterSyntax(
+                            leadingTrivia: .newline,
+                            firstName: .identifier(functionDecl.name.text),
+                            type: TypeSyntax(
+                                AttributedTypeSyntax(
+                                    attributes: AttributeListSyntax {
+                                        AttributeSyntax.atEscaping(trailingTrivia: .space)
+                                    },
+                                    baseType: closureFunctionType(from: functionDecl)
                                 )
                             )
-                        }
-                    },
-                    rightParen: .rightParenToken(leadingTrivia: .newline)
-                )
-            ),
-            body: CodeBlockSyntax(
-                statements: CodeBlockItemListSyntax {
-                    CodeBlockItemSyntax(
-                        item: .expr(
-                            ExprSyntax(
-                                InfixOperatorExprSyntax(
-                                    leftOperand: DeclReferenceExprSyntax(baseName: Self.implMemberName),
-                                    operator: AssignmentExprSyntax(),
-                                    rightOperand: FunctionCallExprSyntax(
-                                        calledExpression: DeclReferenceExprSyntax(baseName: Self.implStructName),
-                                        leftParen: .leftParenToken(),
-                                        rightParen: .rightParenToken(leadingTrivia: .newline),
-                                        argumentsBuilder: {
-                                            LabeledExprListSyntax {
-                                                for functionDecl in interfaceFunctionDecls {
-                                                    LabeledExprSyntax(
-                                                        leadingTrivia: .newline,
-                                                        label: functionDecl.name,
-                                                        colon: .colonToken(),
-                                                        expression: DeclReferenceExprSyntax(baseName: functionDecl.name)
-                                                    )
-                                                }
+                        )
+                    }
+                },
+                rightParen: .rightParenToken(leadingTrivia: .newline)
+            )
+        )
+    }
+    
+    static func initializerBody(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> CodeBlockSyntax {
+        CodeBlockSyntax(
+            statements: CodeBlockItemListSyntax {
+                CodeBlockItemSyntax(
+                    item: .expr(
+                        ExprSyntax(
+                            InfixOperatorExprSyntax(
+                                leftOperand: DeclReferenceExprSyntax(baseName: Self.implMemberName),
+                                operator: AssignmentExprSyntax(),
+                                rightOperand: FunctionCallExprSyntax(
+                                    calledExpression: DeclReferenceExprSyntax(baseName: Self.implStructName),
+                                    leftParen: .leftParenToken(),
+                                    rightParen: .rightParenToken(leadingTrivia: .newline),
+                                    argumentsBuilder: {
+                                        LabeledExprListSyntax {
+                                            for functionDecl in interfaceFunctionDecls {
+                                                LabeledExprSyntax(
+                                                    leadingTrivia: .newline,
+                                                    label: functionDecl.name,
+                                                    colon: .colonToken(),
+                                                    expression: DeclReferenceExprSyntax(baseName: functionDecl.name)
+                                                )
                                             }
                                         }
-                                    )
+                                    }
                                 )
                             )
                         )
                     )
-                }
-            )
+                )
+            }
         )
     }
 
