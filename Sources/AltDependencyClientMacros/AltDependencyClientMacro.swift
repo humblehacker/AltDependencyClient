@@ -92,10 +92,10 @@ public struct AltDependencyClientMacro: MemberMacro {
             statements: CodeBlockItemListSyntax {
                 ExprSyntax(
                     InfixOperatorExprSyntax(
-                        leftOperand: DeclReferenceExprSyntax(baseName: Self.implMemberName),
+                        leftOperand: DeclReferenceExprSyntax(baseName: implMemberName),
                         operator: AssignmentExprSyntax(),
                         rightOperand: FunctionCallExprSyntax(
-                            calledExpression: DeclReferenceExprSyntax(baseName: Self.implStructName),
+                            calledExpression: DeclReferenceExprSyntax(baseName: implStructName),
                             leftParen: .leftParenToken(),
                             rightParen: .rightParenToken(leadingTrivia: .newline),
                             argumentsBuilder: {
@@ -122,7 +122,7 @@ public struct AltDependencyClientMacro: MemberMacro {
     static func implStructDecl(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> StructDeclSyntax {
         StructDeclSyntax(
             modifiers: DeclModifierListSyntax { .public() },
-            name: Self.implStructName
+            name: implStructName
         ) {
             for functionDecl in interfaceFunctionDecls {
                 VariableDeclSyntax(
@@ -207,7 +207,7 @@ public struct AltDependencyClientMacro: MemberMacro {
     static func functionCallExpr(from functionDecl: FunctionDeclSyntax) -> FunctionCallExprSyntax {
         FunctionCallExprSyntax(
             calledExpression: MemberAccessExprSyntax(
-                base: DeclReferenceExprSyntax(baseName: Self.implMemberName),
+                base: DeclReferenceExprSyntax(baseName: implMemberName),
                 declName: DeclReferenceExprSyntax(baseName: functionDecl.name)
             ),
             leftParen: .leftParenToken(),
