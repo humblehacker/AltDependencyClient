@@ -36,7 +36,7 @@ public struct AltDependencyClientMacro: MemberMacro {
 
         let interfaceFunctionDecls = interfaceFunctionDecls(from: interfaceProtocolDecl)
 
-        let result = [DeclSyntax("let \(raw: Self.implMemberName): \(raw: Self.implStructName)")]
+        let result = [DeclSyntax("public let \(raw: Self.implMemberName): \(raw: Self.implStructName)")]
                    + [DeclSyntax(initDecl(from: interfaceFunctionDecls))]
                    + wrapperFunctionDecls(from: interfaceFunctionDecls).map(DeclSyntax.init)
                    + [DeclSyntax(implStructDecl(from: interfaceFunctionDecls))]
@@ -55,6 +55,7 @@ public struct AltDependencyClientMacro: MemberMacro {
 
     static func initDecl(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> InitializerDeclSyntax {
         return InitializerDeclSyntax(
+            modifiers: DeclModifierListSyntax { .public() },
             signature: initializerSignature(from: interfaceFunctionDecls),
             body: initializerBody(from: interfaceFunctionDecls)
         )
@@ -121,11 +122,17 @@ public struct AltDependencyClientMacro: MemberMacro {
     // MARK: - `struct Impl` generation
 
     static func implStructDecl(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> StructDeclSyntax {
-        StructDeclSyntax(name: Self.implStructName) {
+        StructDeclSyntax(
+            modifiers: DeclModifierListSyntax { .public() },
+            name: Self.implStructName) {
             for functionDecl in interfaceFunctionDecls {
                 VariableDeclSyntax(
                     attributes: functionDecl.attributes,
-                    modifiers: functionDecl.modifiers,
+                    modifiers: {
+                        var modifiers = functionDecl.modifiers
+                        modifiers.append(.public())
+                        return modifiers
+                    }(),
                     bindingSpecifier: .keyword(.var)
                 ) {
                     PatternBindingSyntax(
@@ -170,6 +177,7 @@ public struct AltDependencyClientMacro: MemberMacro {
 
     static func wrapperFunctionDecl(from functionDecl: FunctionDeclSyntax) -> FunctionDeclSyntax {
         var newDecl = functionDecl
+        newDecl.modifiers = DeclModifierListSyntax { .public(leadingTrivia: .newline) }
         newDecl.attributes = AttributeListSyntax {
             AttributeSyntax.atInlinable(trailingTrivia: .newline)
             AttributeSyntax.atInline(option: .always)

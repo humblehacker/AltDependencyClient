@@ -65,3 +65,9 @@ extension FunctionParameterSyntax {
         ?? false
     }
 }
+
+extension DeclModifierSyntax {
+    static func `public`(leadingTrivia: Trivia? = nil, trailingTrivia: Trivia? = nil) -> Self {
+        .init(leadingTrivia: leadingTrivia, name: .keyword(.public), trailingTrivia: trailingTrivia)
+    }
+}

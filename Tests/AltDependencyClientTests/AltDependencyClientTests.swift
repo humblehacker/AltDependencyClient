@@ -40,9 +40,9 @@ final class AltDependencyClient: XCTestCase {
                 func baz() async throws
               }
 
-              let impl: Impl
+              public let impl: Impl
 
-              init(
+              public init(
                 foo: @escaping (_ integer: Int) -> String,
                 bar: @escaping (_ string: String) -> Int,
                 baz: @escaping () async throws -> Void
@@ -56,26 +56,29 @@ final class AltDependencyClient: XCTestCase {
 
               @inlinable
               @inline(__always)
+              public
               func foo(integer: Int) -> String {
                 impl.foo(integer)
               }
 
               @inlinable
               @inline(__always)
+              public
               func bar(from string: String) -> Int {
                 impl.bar(string)
               }
 
               @inlinable
               @inline(__always)
+              public
               func baz() async throws {
                 try await impl.baz()
               }
 
-              struct Impl {
-                var foo: (_ integer: Int) -> String
-                var bar: (_ string: String) -> Int
-                var baz: () async throws -> Void
+              public struct Impl {
+                public var foo: (_ integer: Int) -> String
+                public var bar: (_ string: String) -> Int
+                public var baz: () async throws -> Void
               }
             }
             """
@@ -129,9 +132,9 @@ final class AltDependencyClient: XCTestCase {
                 func bar(from: Integer) -> (String, Float)
               }
 
-              let impl: Impl
+              public let impl: Impl
 
-              init(
+              public init(
                 bar: @escaping (_ from: Integer) -> (String, Float)
               ) {
                 impl = Impl(
@@ -141,12 +144,13 @@ final class AltDependencyClient: XCTestCase {
 
               @inlinable
               @inline(__always)
+              public
               func bar(from: Integer) -> (String, Float) {
                 impl.bar(from)
               }
 
-              struct Impl {
-                var bar: (_ from: Integer) -> (String, Float)
+              public struct Impl {
+                public var bar: (_ from: Integer) -> (String, Float)
               }
             }
             """
@@ -170,9 +174,9 @@ final class AltDependencyClient: XCTestCase {
                 func bar(from: Integer) -> ()
               }
 
-              let impl: Impl
+              public let impl: Impl
 
-              init(
+              public init(
                 bar: @escaping (_ from: Integer) -> ()
               ) {
                 impl = Impl(
@@ -182,12 +186,13 @@ final class AltDependencyClient: XCTestCase {
 
               @inlinable
               @inline(__always)
+              public
               func bar(from: Integer) -> () {
                 impl.bar(from)
               }
 
-              struct Impl {
-                var bar: (_ from: Integer) -> ()
+              public struct Impl {
+                public var bar: (_ from: Integer) -> ()
               }
             }
             """
@@ -211,9 +216,9 @@ final class AltDependencyClient: XCTestCase {
                 func bar() -> Int?
               }
 
-              let impl: Impl
+              public let impl: Impl
 
-              init(
+              public init(
                 bar: @escaping () -> Int?
               ) {
                 impl = Impl(
@@ -223,12 +228,13 @@ final class AltDependencyClient: XCTestCase {
 
               @inlinable
               @inline(__always)
+              public
               func bar() -> Int? {
                 impl.bar()
               }
 
-              struct Impl {
-                var bar: () -> Int?
+              public struct Impl {
+                public var bar: () -> Int?
               }
             }
             """
@@ -252,9 +258,9 @@ final class AltDependencyClient: XCTestCase {
                 func bar() -> Optional<Int>
               }
 
-              let impl: Impl
+              public let impl: Impl
 
-              init(
+              public init(
                 bar: @escaping () -> Optional<Int>
               ) {
                 impl = Impl(
@@ -264,12 +270,13 @@ final class AltDependencyClient: XCTestCase {
 
               @inlinable
               @inline(__always)
+              public
               func bar() -> Optional<Int> {
                 impl.bar()
               }
 
-              struct Impl {
-                var bar: () -> Optional<Int>
+              public struct Impl {
+                public var bar: () -> Optional<Int>
               }
             }
             """
@@ -295,9 +302,9 @@ final class AltDependencyClient: XCTestCase {
                 func baz(with something: String) -> Void
               }
 
-              let impl: Impl
+              public let impl: Impl
 
-              init(
+              public init(
                 bar: @escaping (_ from: Int) -> Void,
                 baz: @escaping (_ something: String) -> Void
               ) {
@@ -309,19 +316,21 @@ final class AltDependencyClient: XCTestCase {
 
               @inlinable
               @inline(__always)
+              public
               func bar(from: Int) -> Void {
                 impl.bar(from)
               }
 
               @inlinable
               @inline(__always)
+              public
               func baz(with something: String) -> Void {
                 impl.baz(something)
               }
 
-              struct Impl {
-                var bar: (_ from: Int) -> Void
-                var baz: (_ something: String) -> Void
+              public struct Impl {
+                public var bar: (_ from: Int) -> Void
+                public var baz: (_ something: String) -> Void
               }
             }
             """
@@ -345,9 +354,9 @@ final class AltDependencyClient: XCTestCase {
                 func `return`(from: Int) -> Void
               }
 
-              let impl: Impl
+              public let impl: Impl
 
-              init(
+              public init(
                 `return`: @escaping (_ from: Int) -> Void
               ) {
                 impl = Impl(
@@ -357,12 +366,13 @@ final class AltDependencyClient: XCTestCase {
 
               @inlinable
               @inline(__always)
+              public
               func `return`(from: Int) -> Void {
                 impl.`return`(from)
               }
 
-              struct Impl {
-                var `return`: (_ from: Int) -> Void
+              public struct Impl {
+                public var `return`: (_ from: Int) -> Void
               }
             }
             """
@@ -386,9 +396,9 @@ final class AltDependencyClient: XCTestCase {
                 func bar(from: inout Int) -> Void
               }
 
-              let impl: Impl
+              public let impl: Impl
 
-              init(
+              public init(
                 bar: @escaping (_ from: inout Int) -> Void
               ) {
                 impl = Impl(
@@ -398,12 +408,13 @@ final class AltDependencyClient: XCTestCase {
 
               @inlinable
               @inline(__always)
+              public
               func bar(from: inout Int) -> Void {
                 impl.bar(&from)
               }
 
-              struct Impl {
-                var bar: (_ from: inout Int) -> Void
+              public struct Impl {
+                public var bar: (_ from: inout Int) -> Void
               }
             }
             """
@@ -427,9 +438,9 @@ final class AltDependencyClient: XCTestCase {
                 func bar(from: (Int) -> Void) -> Void
               }
 
-              let impl: Impl
+              public let impl: Impl
 
-              init(
+              public init(
                 bar: @escaping (_ from: (Int) -> Void) -> Void
               ) {
                 impl = Impl(
@@ -439,12 +450,13 @@ final class AltDependencyClient: XCTestCase {
 
               @inlinable
               @inline(__always)
+              public
               func bar(from: (Int) -> Void) -> Void {
                 impl.bar(from)
               }
 
-              struct Impl {
-                var bar: (_ from: (Int) -> Void) -> Void
+              public struct Impl {
+                public var bar: (_ from: (Int) -> Void) -> Void
               }
             }
             """
@@ -468,9 +480,9 @@ final class AltDependencyClient: XCTestCase {
                 func bar(from: @autoclosure () -> Void) -> Void
               }
 
-              let impl: Impl
+              public let impl: Impl
 
-              init(
+              public init(
                 bar: @escaping (_ from: @autoclosure () -> Void) -> Void
               ) {
                 impl = Impl(
@@ -480,12 +492,13 @@ final class AltDependencyClient: XCTestCase {
 
               @inlinable
               @inline(__always)
+              public
               func bar(from: @autoclosure () -> Void) -> Void {
                 impl.bar(from())
               }
 
-              struct Impl {
-                var bar: (_ from: @autoclosure () -> Void) -> Void
+              public struct Impl {
+                public var bar: (_ from: @autoclosure () -> Void) -> Void
               }
             }
             """
