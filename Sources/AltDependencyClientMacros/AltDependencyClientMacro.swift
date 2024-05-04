@@ -120,7 +120,8 @@ public struct AltDependencyClientMacro: MemberMacro {
     static func implStructDecl(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> StructDeclSyntax {
         StructDeclSyntax(
             modifiers: DeclModifierListSyntax { .public() },
-            name: Self.implStructName) {
+            name: Self.implStructName
+        ) {
             for functionDecl in interfaceFunctionDecls {
                 VariableDeclSyntax(
                     attributes: functionDecl.attributes,
