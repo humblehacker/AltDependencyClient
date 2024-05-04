@@ -88,30 +88,26 @@ public struct AltDependencyClientMacro: MemberMacro {
     static func initializerBody(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> CodeBlockSyntax {
         CodeBlockSyntax(
             statements: CodeBlockItemListSyntax {
-                CodeBlockItemSyntax(
-                    item: .expr(
-                        ExprSyntax(
-                            InfixOperatorExprSyntax(
-                                leftOperand: DeclReferenceExprSyntax(baseName: Self.implMemberName),
-                                operator: AssignmentExprSyntax(),
-                                rightOperand: FunctionCallExprSyntax(
-                                    calledExpression: DeclReferenceExprSyntax(baseName: Self.implStructName),
-                                    leftParen: .leftParenToken(),
-                                    rightParen: .rightParenToken(leadingTrivia: .newline),
-                                    argumentsBuilder: {
-                                        LabeledExprListSyntax {
-                                            for functionDecl in interfaceFunctionDecls {
-                                                LabeledExprSyntax(
-                                                    leadingTrivia: .newline,
-                                                    label: functionDecl.name.withoutBackticks,
-                                                    colon: .colonToken(),
-                                                    expression: DeclReferenceExprSyntax(baseName: functionDecl.name)
-                                                )
-                                            }
-                                        }
+                ExprSyntax(
+                    InfixOperatorExprSyntax(
+                        leftOperand: DeclReferenceExprSyntax(baseName: Self.implMemberName),
+                        operator: AssignmentExprSyntax(),
+                        rightOperand: FunctionCallExprSyntax(
+                            calledExpression: DeclReferenceExprSyntax(baseName: Self.implStructName),
+                            leftParen: .leftParenToken(),
+                            rightParen: .rightParenToken(leadingTrivia: .newline),
+                            argumentsBuilder: {
+                                LabeledExprListSyntax {
+                                    for functionDecl in interfaceFunctionDecls {
+                                        LabeledExprSyntax(
+                                            leadingTrivia: .newline,
+                                            label: functionDecl.name.withoutBackticks,
+                                            colon: .colonToken(),
+                                            expression: DeclReferenceExprSyntax(baseName: functionDecl.name)
+                                        )
                                     }
-                                )
-                            )
+                                }
+                            }
                         )
                     )
                 )
@@ -192,17 +188,13 @@ public struct AltDependencyClientMacro: MemberMacro {
     static func wrapperFunctionBody(from functionDecl: FunctionDeclSyntax) -> CodeBlockSyntax {
         CodeBlockSyntax(
             statements: CodeBlockItemListSyntax {
-                CodeBlockItemSyntax(
-                    item: .expr(
-                        ExprSyntax(
-                            maybeTry(
-                                expression: maybeAwait(
-                                    expression: functionCallExpr(from: functionDecl),
-                                    from: functionDecl
-                                ),
-                                from: functionDecl
-                            )
-                        )
+                ExprSyntax(
+                    maybeTry(
+                        expression: maybeAwait(
+                            expression: functionCallExpr(from: functionDecl),
+                            from: functionDecl
+                        ),
+                        from: functionDecl
                     )
                 )
             }
