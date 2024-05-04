@@ -40,7 +40,7 @@ final class AltDependencyClient: XCTestCase {
                 func baz() async throws
               }
 
-              public let impl: Impl
+              public var impl: Impl
 
               public init(
                 foo: @escaping (_ integer: Int) -> String,
@@ -132,7 +132,7 @@ final class AltDependencyClient: XCTestCase {
                 func bar(from: Integer) -> (String, Float)
               }
 
-              public let impl: Impl
+              public var impl: Impl
 
               public init(
                 bar: @escaping (_ from: Integer) -> (String, Float)
@@ -174,7 +174,7 @@ final class AltDependencyClient: XCTestCase {
                 func bar(from: Integer) -> ()
               }
 
-              public let impl: Impl
+              public var impl: Impl
 
               public init(
                 bar: @escaping (_ from: Integer) -> ()
@@ -216,7 +216,7 @@ final class AltDependencyClient: XCTestCase {
                 func bar() -> Int?
               }
 
-              public let impl: Impl
+              public var impl: Impl
 
               public init(
                 bar: @escaping () -> Int?
@@ -258,7 +258,7 @@ final class AltDependencyClient: XCTestCase {
                 func bar() -> Optional<Int>
               }
 
-              public let impl: Impl
+              public var impl: Impl
 
               public init(
                 bar: @escaping () -> Optional<Int>
@@ -302,7 +302,7 @@ final class AltDependencyClient: XCTestCase {
                 func baz(with something: String) -> Void
               }
 
-              public let impl: Impl
+              public var impl: Impl
 
               public init(
                 bar: @escaping (_ from: Int) -> Void,
@@ -354,7 +354,7 @@ final class AltDependencyClient: XCTestCase {
                 func `return`(from: Int) -> Void
               }
 
-              public let impl: Impl
+              public var impl: Impl
 
               public init(
                 `return`: @escaping (_ from: Int) -> Void
@@ -396,7 +396,7 @@ final class AltDependencyClient: XCTestCase {
                 func bar(from: inout Int) -> Void
               }
 
-              public let impl: Impl
+              public var impl: Impl
 
               public init(
                 bar: @escaping (_ from: inout Int) -> Void
@@ -438,7 +438,7 @@ final class AltDependencyClient: XCTestCase {
                 func bar(from: (Int) -> Void) -> Void
               }
 
-              public let impl: Impl
+              public var impl: Impl
 
               public init(
                 bar: @escaping (_ from: (Int) -> Void) -> Void
@@ -480,7 +480,7 @@ final class AltDependencyClient: XCTestCase {
                 func bar(from: @autoclosure () -> Void) -> Void
               }
 
-              public let impl: Impl
+              public var impl: Impl
 
               public init(
                 bar: @escaping (_ from: @autoclosure () -> Void) -> Void

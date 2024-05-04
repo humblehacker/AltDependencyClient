@@ -36,7 +36,7 @@ public struct AltDependencyClientMacro: MemberMacro {
 
         let interfaceFunctionDecls = interfaceFunctionDecls(from: interfaceProtocolDecl)
 
-        let result = [DeclSyntax("public let \(raw: Self.implMemberName): \(raw: Self.implStructName)")]
+        let result = [DeclSyntax("public var \(raw: Self.implMemberName): \(raw: Self.implStructName)")]
                    + [DeclSyntax(initDecl(from: interfaceFunctionDecls))]
                    + wrapperFunctionDecls(from: interfaceFunctionDecls).map(DeclSyntax.init)
                    + [DeclSyntax(implStructDecl(from: interfaceFunctionDecls))]
