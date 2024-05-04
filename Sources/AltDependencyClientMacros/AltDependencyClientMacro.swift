@@ -24,9 +24,7 @@ public struct AltDependencyClientMacro: MemberMacro {
             return []
         }
 
-        guard let interfaceProtocolDecl = structDecl.memberBlock.members.first?.decl.as(ProtocolDeclSyntax.self),
-              interfaceProtocolDecl.name.text == interfaceName
-        else {
+        guard let interfaceProtocolDecl = interfaceProtocolDecl(from: structDecl) else {
             context.emitDiagnostic(
                 node: structDecl,
                 message: "'@AltDependencyClient' requires a nested protocol named '\(interfaceName)'"
@@ -36,12 +34,18 @@ public struct AltDependencyClientMacro: MemberMacro {
 
         let interfaceFunctionDecls = interfaceFunctionDecls(from: interfaceProtocolDecl)
 
-        let result = [DeclSyntax("public var \(raw: Self.implMemberName): \(raw: Self.implStructName)")]
+        let result = [DeclSyntax("public var \(raw: implMemberName): \(raw: implStructName)")]
                    + [DeclSyntax(initDecl(from: interfaceFunctionDecls))]
                    + wrapperFunctionDecls(from: interfaceFunctionDecls).map(DeclSyntax.init)
                    + [DeclSyntax(implStructDecl(from: interfaceFunctionDecls))]
 
         return result
+    }
+
+    static func interfaceProtocolDecl(from structDecl: StructDeclSyntax) -> ProtocolDeclSyntax? {
+        structDecl.memberBlock.members
+            .compactMap { memberBlockItem in memberBlockItem.decl.as(ProtocolDeclSyntax.self) }
+            .first(where: { $0.name.text == interfaceName })
     }
 
     static func interfaceFunctionDecls(from interfaceProtocolDecl: ProtocolDeclSyntax) -> [FunctionDeclSyntax] {
