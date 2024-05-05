@@ -5,39 +5,39 @@ import SwiftSyntaxBuilder
 import SwiftSyntaxMacroExpansion
 import SwiftSyntaxMacros
 
-public struct AltDependencyClientMacro: MemberMacro {
-    static let interfaceName = "Interface"
-    static let implStructName = TokenSyntax.identifier("Impl")
-    static let implMemberName = TokenSyntax.identifier("impl")
+let interfaceName = "Interface"
+let implStructName = TokenSyntax.identifier("Impl")
+let implMemberName = TokenSyntax.identifier("impl")
 
+public struct AltDependencyClientMacro: MemberMacro {
     public static func expansion(
         of node: AttributeSyntax,
         providingMembersOf declaration: some DeclGroupSyntax,
         conformingTo protocols: [TypeSyntax],
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
-        guard let structDecl = declaration.as(StructDeclSyntax.self) else {
-            context.emitDiagnostic(
-                node: declaration,
-                message: "'@AltDependencyClient' can only be applied to structs"
-            )
+        do {
+            guard let structDecl = declaration.as(StructDeclSyntax.self) else {
+                throw DiagnosticsError.incorrectApplication(declaration: declaration)
+            }
+
+            guard let interfaceProtocolDecl = interfaceProtocolDecl(from: structDecl) else {
+                throw DiagnosticsError.missingInterfaceProtocol(structDecl)
+            }
+
+            let interfaceFunctionDecls = interfaceFunctionDecls(from: interfaceProtocolDecl)
+
+            return ["public var \(raw: implMemberName): \(raw: implStructName)"]
+                + [initDecl(from: interfaceFunctionDecls).cast(DeclSyntax.self)]
+                + wrapperFunctionDecls(from: interfaceFunctionDecls).map(DeclSyntax.init)
+                + [implStructDecl(from: interfaceFunctionDecls).cast(DeclSyntax.self)]
+
+        } catch let error as DiagnosticsError {
+            for diagnostic in error.diagnostics {
+                context.diagnose(diagnostic)
+            }
             return []
         }
-
-        guard let interfaceProtocolDecl = interfaceProtocolDecl(from: structDecl) else {
-            context.emitDiagnostic(
-                node: structDecl,
-                message: "'@AltDependencyClient' requires a nested protocol named '\(interfaceName)'"
-            )
-            return []
-        }
-
-        let interfaceFunctionDecls = interfaceFunctionDecls(from: interfaceProtocolDecl)
-
-        return ["public var \(raw: implMemberName): \(raw: implStructName)"]
-            + [initDecl(from: interfaceFunctionDecls).cast(DeclSyntax.self)]
-            + wrapperFunctionDecls(from: interfaceFunctionDecls).map(DeclSyntax.init)
-            + [implStructDecl(from: interfaceFunctionDecls).cast(DeclSyntax.self)]
     }
 
     static func interfaceProtocolDecl(from structDecl: StructDeclSyntax) -> ProtocolDeclSyntax? {
@@ -251,21 +251,48 @@ public struct AltDependencyClientMacro: MemberMacro {
 
 }
 
-// MARK: - Extensions
+// MARK: - Errors & Diagnostics
 
-extension MacroExpansionContext {
-    func emitDiagnostic(
-        node: some SyntaxProtocol,
-        message: @autoclosure () -> String
-    ) {
-        diagnose(
+extension DiagnosticsError {
+    static func missingInterfaceProtocol(_ structDecl: StructDeclSyntax) -> DiagnosticsError {
+        DiagnosticsError(diagnostics: [
             Diagnostic(
-                node: node,
-                message: MacroExpansionErrorMessage(message())
+                node: structDecl,
+                message: "'@AltDependencyClient' requires a nested protocol named '\(interfaceName)'",
+                fixIt: FixIt(
+                    message: "Insert 'protocol Interface'",
+                    changes: [
+                        .replace(
+                            oldNode: Syntax(structDecl),
+                            newNode: Syntax({
+                                var newStructDecl = structDecl
+                                newStructDecl.memberBlock = {
+                                    var newMembers = structDecl.memberBlock.members
+                                    newMembers.append(MemberBlockItemSyntax(decl: DeclSyntax("\nprotocol Interface { }\n")))
+                                    var newMemberBlock = structDecl.memberBlock
+                                    newMemberBlock.members = newMembers
+                                    return newMemberBlock
+                                }()
+                                return newStructDecl
+                            }())
+                        )
+                    ]
+                )
             )
-        )
+        ])
+    }
+
+    static func incorrectApplication(declaration: some DeclGroupSyntax) -> DiagnosticsError {
+        DiagnosticsError(diagnostics: [
+            Diagnostic(
+                node: declaration,
+                message: "'@AltDependencyClient' can only be applied to structs"
+            )
+        ])
     }
 }
+
+// MARK: - Plugin main
 
 @main
 struct AltDependencyClientPlugin: CompilerPlugin {

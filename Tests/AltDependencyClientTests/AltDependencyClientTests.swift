@@ -110,7 +110,30 @@ final class AltDependencyClient: XCTestCase {
             """
             @AltDependencyClient
             ╰─ 🛑 '@AltDependencyClient' requires a nested protocol named 'Interface'
+               ✏️ Insert 'protocol Interface'
             struct Foo {}
+            """
+        } fixes: {
+            """
+            @AltDependencyClient
+            struct Foo {
+            protocol Interface { }}
+            """
+        } expansion: {
+            """
+            struct Foo {
+            protocol Interface { }
+
+                public var impl: Impl
+
+                public init(
+                ) {
+                    impl = Impl(
+                    )
+                }
+
+                public struct Impl {
+                }}
             """
         }
     }
