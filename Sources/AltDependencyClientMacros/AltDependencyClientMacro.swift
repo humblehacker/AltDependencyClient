@@ -30,7 +30,7 @@ public struct AltDependencyClientMacro: MemberMacro {
             return ["public var \(raw: implMemberName): \(raw: implStructName)"]
                 + [initDecl(from: interfaceFunctionDecls).cast(DeclSyntax.self)]
                 + wrapperFunctionDecls(from: interfaceFunctionDecls).map(DeclSyntax.init)
-                + [implStructDecl(from: interfaceFunctionDecls).cast(DeclSyntax.self)]
+                + [implStructDecl(from: interfaceFunctionDecls, sendable: structDecl.sendable).cast(DeclSyntax.self)]
 
         } catch let error as DiagnosticsError {
             for diagnostic in error.diagnostics {
@@ -119,10 +119,14 @@ public struct AltDependencyClientMacro: MemberMacro {
 
     // MARK: - `struct Impl` generation
 
-    static func implStructDecl(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> StructDeclSyntax {
+    static func implStructDecl(
+        from interfaceFunctionDecls: [FunctionDeclSyntax],
+        sendable: Bool
+    ) -> StructDeclSyntax {
         StructDeclSyntax(
             modifiers: DeclModifierListSyntax { .public() },
-            name: implStructName
+            name: implStructName,
+            inheritanceClause: sendable ? .sendable : nil
         ) {
             for functionDecl in interfaceFunctionDecls {
                 VariableDeclSyntax(

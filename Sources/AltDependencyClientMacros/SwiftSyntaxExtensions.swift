@@ -43,12 +43,42 @@ extension AttributeSyntax {
     }
 }
 
+extension InheritanceClauseSyntax {
+    static var sendable: Self {
+        InheritanceClauseSyntax(
+            inheritedTypes: InheritedTypeListSyntax {
+                InheritedTypeSyntax(
+                    type: IdentifierTypeSyntax(name: .identifier("Sendable"))
+                )
+            }
+        )
+    }
+}
+
 extension TokenSyntax {
     var withoutBackticks: Self {
         guard case TokenKind.identifier(let identifier) = tokenKind else { return self }
         var copy = self
         copy.tokenKind = .identifier(identifier.trimmingCharacters(in: CharacterSet(charactersIn: "`")))
         return copy
+    }
+}
+
+extension TokenKind {
+    var identifier: String? {
+        switch self {
+        case .identifier(let string): return string
+        default: return nil
+        }
+    }
+}
+
+extension StructDeclSyntax {
+    var sendable: Bool {
+        inheritanceClause?.inheritedTypes
+            .compactMap { $0.type.as(IdentifierTypeSyntax.self)?.name.tokenKind.identifier }
+            .contains { $0 == "Sendable" }
+        ?? false
     }
 }
 

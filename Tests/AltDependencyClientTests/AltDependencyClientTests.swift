@@ -527,5 +527,47 @@ final class AltDependencyClient: XCTestCase {
             """
         }
     }
+
+    func testSendableStruct() {
+        assertMacro {
+            """
+            @AltDependencyClient
+            struct Foo: Sendable {
+              protocol Interface {
+                func bar(from: @autoclosure () -> Void) -> Void
+              }
+            }
+            """
+        } expansion: {
+            """
+            struct Foo: Sendable {
+              protocol Interface {
+                func bar(from: @autoclosure () -> Void) -> Void
+              }
+
+              public var impl: Impl
+
+              public init(
+                bar: @escaping (_ from: @autoclosure () -> Void) -> Void
+              ) {
+                impl = Impl(
+                  bar: bar
+                )
+              }
+
+              @inlinable
+              @inline(__always)
+              public
+              func bar(from: @autoclosure () -> Void) -> Void {
+                impl.bar(from())
+              }
+
+              public struct Impl: Sendable {
+                public var bar: (_ from: @autoclosure () -> Void) -> Void
+              }
+            }
+            """
+        }
+    }
 }
 #endif
