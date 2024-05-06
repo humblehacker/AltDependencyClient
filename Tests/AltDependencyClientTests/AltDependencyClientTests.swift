@@ -534,7 +534,7 @@ final class AltDependencyClient: XCTestCase {
             @AltDependencyClient
             struct Foo: Sendable {
               protocol Interface {
-                func bar(from: @autoclosure () -> Void) -> Void
+                func bar(int: Int) -> Void
               }
             }
             """
@@ -542,13 +542,13 @@ final class AltDependencyClient: XCTestCase {
             """
             struct Foo: Sendable {
               protocol Interface {
-                func bar(from: @autoclosure () -> Void) -> Void
+                func bar(int: Int) -> Void
               }
 
               public var impl: Impl
 
               public init(
-                bar: @escaping (_ from: @autoclosure () -> Void) -> Void
+                bar: @Sendable @escaping (_ int: Int) -> Void
               ) {
                 impl = Impl(
                   bar: bar
@@ -558,12 +558,12 @@ final class AltDependencyClient: XCTestCase {
               @inlinable
               @inline(__always)
               public
-              func bar(from: @autoclosure () -> Void) -> Void {
-                impl.bar(from())
+              func bar(int: Int) -> Void {
+                impl.bar(int)
               }
 
               public struct Impl: Sendable {
-                public var bar: (_ from: @autoclosure () -> Void) -> Void
+                public var bar: @Sendable (_ int: Int) -> Void
               }
             }
             """

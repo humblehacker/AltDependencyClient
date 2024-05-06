@@ -10,6 +10,14 @@ extension ReturnClauseSyntax {
 }
 
 extension AttributeSyntax {
+//    static func at(leadingTrivia: Trivia? = nil, _ keyword: Keyword, trailingTrivia: Trivia?) -> Self {
+//        .init(
+//            leadingTrivia: leadingTrivia,
+//            attributeName: IdentifierTypeSyntax(name: .keyword(.escaping)),
+//            trailingTrivia: trailingTrivia
+//        )
+//    }
+
     static func atEscaping(leadingTrivia: Trivia? = nil, trailingTrivia: Trivia? = nil) -> Self {
         .init(
             leadingTrivia: leadingTrivia,
@@ -38,6 +46,14 @@ extension AttributeSyntax {
         .init(
             leadingTrivia: leadingTrivia,
             attributeName: IdentifierTypeSyntax(name: .identifier("inlinable")),
+            trailingTrivia: trailingTrivia
+        )
+    }
+
+    static func atSendable(leadingTrivia: Trivia? = nil, trailingTrivia: Trivia? = nil) -> Self {
+        .init(
+            leadingTrivia: leadingTrivia,
+            attributeName: IdentifierTypeSyntax(name: .identifier("Sendable")),
             trailingTrivia: trailingTrivia
         )
     }

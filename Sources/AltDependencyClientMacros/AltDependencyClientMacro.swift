@@ -26,11 +26,12 @@ public struct AltDependencyClientMacro: MemberMacro {
             }
 
             let interfaceFunctionDecls = interfaceFunctionDecls(from: interfaceProtocolDecl)
+            let sendable = structDecl.sendable
 
             return ["public var \(raw: implMemberName): \(raw: implStructName)"]
-                + [initDecl(from: interfaceFunctionDecls).cast(DeclSyntax.self)]
+                + [initDecl(from: interfaceFunctionDecls, sendable: sendable).cast(DeclSyntax.self)]
                 + wrapperFunctionDecls(from: interfaceFunctionDecls).map(DeclSyntax.init)
-                + [implStructDecl(from: interfaceFunctionDecls, sendable: structDecl.sendable).cast(DeclSyntax.self)]
+                + [implStructDecl(from: interfaceFunctionDecls, sendable: sendable).cast(DeclSyntax.self)]
 
         } catch let error as DiagnosticsError {
             for diagnostic in error.diagnostics {
@@ -55,15 +56,21 @@ public struct AltDependencyClientMacro: MemberMacro {
 
     // MARK: - initializer generation
 
-    static func initDecl(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> InitializerDeclSyntax {
+    static func initDecl(
+        from interfaceFunctionDecls: [FunctionDeclSyntax],
+        sendable: Bool
+    ) -> InitializerDeclSyntax {
         return InitializerDeclSyntax(
             modifiers: DeclModifierListSyntax { .public() },
-            signature: initializerSignature(from: interfaceFunctionDecls),
+            signature: initializerSignature(from: interfaceFunctionDecls, sendable: sendable),
             body: initializerBody(from: interfaceFunctionDecls)
         )
     }
 
-    static func initializerSignature(from interfaceFunctionDecls: [FunctionDeclSyntax]) -> FunctionSignatureSyntax {
+    static func initializerSignature(
+        from interfaceFunctionDecls: [FunctionDeclSyntax],
+        sendable: Bool
+    ) -> FunctionSignatureSyntax {
         FunctionSignatureSyntax(
             parameterClause: FunctionParameterClauseSyntax(
                 parameters: FunctionParameterListSyntax {
@@ -74,6 +81,9 @@ public struct AltDependencyClientMacro: MemberMacro {
                             type: TypeSyntax(
                                 AttributedTypeSyntax(
                                     attributes: AttributeListSyntax {
+                                        if sendable {
+                                            AttributeSyntax.atSendable(trailingTrivia: .space)
+                                        }
                                         AttributeSyntax.atEscaping(trailingTrivia: .space)
                                     },
                                     baseType: closureFunctionType(from: functionDecl)
@@ -140,7 +150,16 @@ public struct AltDependencyClientMacro: MemberMacro {
                 ) {
                     PatternBindingSyntax(
                         pattern: IdentifierPatternSyntax(identifier: functionDecl.name),
-                        typeAnnotation: TypeAnnotationSyntax(type: closureFunctionType(from: functionDecl))
+                        typeAnnotation: TypeAnnotationSyntax(
+                            type: AttributedTypeSyntax(
+                                attributes: AttributeListSyntax {
+                                    if sendable {
+                                        AttributeSyntax.atSendable(trailingTrivia: .space)
+                                    }
+                                },
+                                baseType: closureFunctionType(from: functionDecl)
+                            )
+                        )
                     )
                 }
             }
