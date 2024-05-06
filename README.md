@@ -91,13 +91,8 @@ struct AudioPlayerClient {
 
 ### Pros
 - Allows use of both function parameter labels and parameter names.
-- Better code completion as only the generate wrapper functions are exposed directly.
 - The method implementations can still be replaced via access to the `impl` property.
 
 ### Cons
-- Yes, defining the `Interface` protocol feels a bit strange.
-- The generated code is a bit more verbose than `@DependencyClient`.
+- Yes, defining the `Interface` protocol that is only used by the macro feels a bit strange.
 - It doesn't support no argument dependency construction like `@DependencyClient`, which generates a default "unimplemented" client.
-- `@Sendable` probably won't do the right thing, mainly because I'm not yet sure how it should work.
-
-
