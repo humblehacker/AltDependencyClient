@@ -96,3 +96,4 @@ struct AudioPlayerClient {
 ### Cons
 - Yes, defining the `Interface` protocol that is only used by the macro feels a bit strange.
 - It doesn't support no argument dependency construction like `@DependencyClient`, which generates a default "unimplemented" client.
+- You can't use "show callers" on any of the methods defined in `Interface`, even after expanding the macro and trying it on the generated functions.
