@@ -569,5 +569,47 @@ final class AltDependencyClient: XCTestCase {
             """
         }
     }
+
+    func testUnnamedParameter() {
+        assertMacro {
+            """
+            @AltDependencyClient
+            struct Foo {
+              protocol Interface {
+                func bar(_: Int) -> Void
+              }
+            }
+            """
+        } expansion: {
+            """
+            struct Foo {
+              protocol Interface {
+                func bar(_: Int) -> Void
+              }
+
+              public var impl: Impl
+
+              public init(
+                bar: @escaping (_ p0: Int) -> Void
+              ) {
+                impl = Impl(
+                  bar: bar
+                )
+              }
+
+              @inlinable
+              @inline(__always)
+              public
+              func bar(_ p0: Int) -> Void {
+                impl.bar(p0)
+              }
+
+              public struct Impl {
+                public var bar: (_ p0: Int) -> Void
+              }
+            }
+            """
+        }
+    }
 }
 #endif

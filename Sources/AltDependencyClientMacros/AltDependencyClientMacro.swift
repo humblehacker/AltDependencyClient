@@ -169,10 +169,10 @@ public struct AltDependencyClientMacro: MemberMacro {
     static func closureFunctionType(from functionDecl: FunctionDeclSyntax) -> FunctionTypeSyntax {
         FunctionTypeSyntax(
             parameters: TupleTypeElementListSyntax {
-                for functionParameter in functionDecl.signature.parameterClause.parameters {
+                for (index, functionParameter) in functionDecl.signature.parameterClause.parameters.enumerated() {
                     TupleTypeElementSyntax(
                         firstName: .wildcardToken(),
-                        secondName: functionParameter.secondName ?? functionParameter.firstName,
+                        secondName: closureParameterName(parameter: functionParameter, index: index),
                         colon: .colonToken(),
                         type: functionParameter.type
                     )
@@ -198,7 +198,17 @@ public struct AltDependencyClientMacro: MemberMacro {
     }
 
     static func wrapperFunctionDecl(from functionDecl: FunctionDeclSyntax) -> FunctionDeclSyntax {
-        var newDecl = functionDecl
+
+        var newDecl = functionDecl.with(\.signature.parameterClause.parameters, FunctionParameterListSyntax {
+            for (index, parameter) in functionDecl.signature.parameterClause.parameters.enumerated() {
+                if parameter.firstName.tokenKind == .wildcard && parameter.secondName == nil {
+                    parameter.with(\.secondName, "p\(raw: index)")
+                } else {
+                    parameter
+                }
+            }
+        })
+
         newDecl.modifiers = DeclModifierListSyntax { .public(leadingTrivia: .newline) }
         newDecl.attributes = AttributeListSyntax {
             AttributeSyntax.atInlinable(trailingTrivia: .newline)
@@ -235,9 +245,9 @@ public struct AltDependencyClientMacro: MemberMacro {
             ),
             leftParen: .leftParenToken(),
             arguments: LabeledExprListSyntax {
-                for parameter in functionDecl.signature.parameterClause.parameters {
+                for (index, parameter) in functionDecl.signature.parameterClause.parameters.enumerated() {
                     let baseExpr = DeclReferenceExprSyntax(
-                        baseName: parameter.secondName ?? parameter.firstName
+                        baseName: closureParameterName(parameter: parameter, index: index)
                     )
 
                     if parameter.isInOut {
@@ -260,6 +270,15 @@ public struct AltDependencyClientMacro: MemberMacro {
             },
             rightParen: .rightParenToken()
         )
+    }
+
+    static func closureParameterName(
+        parameter: FunctionParameterSyntax,
+        index: Int
+    ) -> TokenSyntax {
+        let result = parameter.secondName ?? parameter.firstName
+        guard result.tokenKind != .wildcard else { return "p\(raw: index)" }
+        return result
     }
 
     static func maybeAwait(expression: some ExprSyntaxProtocol, from functionDecl: FunctionDeclSyntax) -> any ExprSyntaxProtocol {
