@@ -1,8 +1,8 @@
 // swift-tools-version: 5.10
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
-import PackageDescription
 import CompilerPluginSupport
+import PackageDescription
 
 let package = Package(
     name: "AltDependencyClient",
@@ -19,8 +19,8 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-syntax.git", from: "509.0.0"),
-        .package(url: "https://github.com/pointfreeco/swift-macro-testing", from: "0.4.0"),
+        .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "510.0.2"),
+        .package(url: "https://github.com/pointfreeco/swift-macro-testing", from: "0.5.1"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -30,7 +30,7 @@ let package = Package(
             name: "AltDependencyClientMacros",
             dependencies: [
                 .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
-                .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
             ]
         ),
 
